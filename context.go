@@ -16,6 +16,7 @@ package ui
 import "C"
 
 import (
+	"errors"
 	"image/color"
 	"unsafe"
 )
@@ -214,18 +215,6 @@ func (self *Context) Scale(x, y float64) {
 	C.nvgScale(self.cbase, C.float(x), C.float(y))
 }
 
-func (self Context) BeginPath() {
-	C.nvgBeginPath(self.cbase)
-}
-
-func (self Context) RoundedRect(x, y, w, h, r float64) {
-	C.nvgRoundedRect(self.cbase, C.float(x), C.float(y), C.float(w), C.float(h), C.float(r))
-}
-
-func (self Context) Fill() {
-	C.nvgFill(self.cbase)
-}
-
 // NewImage creates image by loading it from the disk from
 // specified file name.  Returns the image handle.
 func (self *Context) NewImage(filename string, flags int) Image {
@@ -276,10 +265,202 @@ func (self Context) BoxGradient(x, y, w, h, r, f float64, a, b color.Color) Pain
 	return Paint{C.nvgBoxGradient(self.cbase, C.float(x), C.float(y), C.float(w), C.float(h), C.float(r), C.float(f), c, d)}
 }
 
+func (self Context) ImagePattern(cx, cy, w, h, angle float64, image Image, repeat int, alpha float64) Paint {
+	return Paint{C.nvgImagePattern(self.cbase,
+		C.float(cx),
+		C.float(cy),
+		C.float(w),
+		C.float(h),
+		C.float(angle),
+		C.int(image.handle),
+		C.int(repeat),
+		C.float(alpha))}
+}
+
+// Scissor sets the current scissor rectangle.
+// The scissor rectangle is transformed by the current transform.
+func (self Context) Scissor(x, y, w, h float64) {
+	C.nvgScissor(self.cbase, C.float(x), C.float(y), C.float(w), C.float(h))
+}
+
+// IntersectScissor intersects current scissor rectangle with the specified
+// rectangle. The scissor rectangle is transformed by the current transform.
+// Note: in case the rotation of previous scissor rect differs from
+// the current one, the intersection will be done between the specified
+// rectangle and the previous scissor rectangle transformed in the current
+// transform space. The resulting shape is always rectangle.
+func (self Context) IntersectScissor(x, y, w, h float64) {
+	C.nvgIntersectScissor(self.cbase, C.float(x), C.float(y), C.float(w), C.float(h))
+}
+
+// Reset and disables scissoring.
+func (self Context) ResetScissor() {
+	C.nvgResetScissor(self.cbase)
+}
+
+// Clears the current path and sub-paths.
+func (self Context) BeginPath() {
+	C.nvgBeginPath(self.cbase)
+}
+
+// MoveTo starts new sub-path with specified point as first point.
+func (self Context) MoveTo(x, y float64) {
+	C.nvgMoveTo(self.cbase, C.float(x), C.float(y))
+}
+
+// LineTo adds line segment from the last point in the path to the
+// specified point.
+func (self Context) LineTo(x, y float64) {
+	C.nvgLineTo(self.cbase, C.float(x), C.float(y))
+}
+
+// BezierTo adds cubic bezier segment from last point in the path via
+// two control points to the specified point.
+func (self Context) BezierTo(c1x, c1y, c2x, c2y, x, y float64) {
+	C.nvgBezierTo(self.cbase, C.float(c1x), C.float(c1y), C.float(c2x), C.float(c2y), C.float(x), C.float(y))
+}
+
+// QuadTo adds quadratic bezier segment from last point in the path
+// via a control point to the specified point.
+func (self Context) QuadTo(cx, cy, x, y float64) {
+	C.nvgQuadTo(self.cbase, C.float(cx), C.float(cy), C.float(x), C.float(y))
+}
+
+// ArcTo adds an arc segment at the corner defined by the last path
+// point, and two specified points.
+func (self Context) ArcTo(x1, y1, x2, y2, radius float64) {
+	C.nvgArcTo(self.cbase, C.float(x1), C.float(y1), C.float(x2), C.float(y2), C.float(radius))
+}
+
+// ClosePath closes current sub-path with a line segment.
+func (self Context) ClosePath() {
+	C.nvgClosePath(self.cbase)
+}
+
+// PathWinding sets the current sub-path winding, see NVGwinding
+// and NVGsolidity.
+func (self Context) PathWinding(dir int) {
+	C.nvgPathWinding(self.cbase, C.int(dir))
+}
+
+// Arc creates new circle arc shaped sub-path. The arc center is
+// at cx,cy, the arc radius is r, and the arc is drawn from angle
+// a0 to a1, and swept in direction dir (NVG_CCW, or NVG_CW).
+// Angles are specified in radians.
+func (self Context) Arc(cx, cy, r, a0, a1 float64, dir int) {
+	C.nvgArc(self.cbase, C.float(cx), C.float(cy), C.float(r), C.float(a0), C.float(a1), C.int(dir))
+}
+
+// Rect creates new rectangle shaped sub-path.
+func (self Context) Rect(x, y, w, h float64) {
+	C.nvgRect(self.cbase, C.float(x), C.float(y), C.float(w), C.float(h))
+}
+
+// RoundedRect creates new rounded rectangle shaped sub-path.
+func (self Context) RoundedRect(x, y, w, h, r float64) {
+	C.nvgRoundedRect(self.cbase, C.float(x), C.float(y), C.float(w), C.float(h), C.float(r))
+}
+
+// Ellipse creates new ellipse shaped sub-path.
+func (self Context) Ellipse(cx, cy, rx, ry float64) {
+	C.nvgEllipse(self.cbase, C.float(cx), C.float(cy), C.float(rx), C.float(ry))
+}
+
+// Circle creates new circle shaped sub-path.
+func (self Context) Circle(cx, cy, r float64) {
+	C.nvgCircle(self.cbase, C.float(cx), C.float(cy), C.float(r))
+}
+
+// Fill the current path with current fill style.
+func (self Context) Fill() {
+	C.nvgFill(self.cbase)
+}
+
+// Stroke the current path with current stroke style.
+func (self Context) Stroke() {
+	C.nvgStroke(self.cbase)
+}
+
+// Creates font by loading it from the disk from specified file name.
+// Returns handle to the font.
+func (self Context) CreateFont(name, filepath string) {
+	n := C.CString(name)
+	defer C.free(unsafe.Pointer(n))
+	p := C.CString(filepath)
+	defer C.free(unsafe.Pointer(p))
+	C.nvgCreateFont(self.cbase, n, p)
+}
+
+// Creates image by loading it from the specified memory chunk.
+// Returns handle to the font.
+// func (self Context) CreateFontMem() {
+// 	C.nvgCreateFontMem(self.cbase)
+// }
+// int nvgCreateFontMem(NVGcontext* ctx, const char* name, unsigned char* data, int ndata, int freeData);
+
+// Finds a loaded font of specified name, and returns handle to it, or -1 if the font is not found.
+func (self Context) FindFont(name string) (*Font, error) {
+	n := C.CString(name)
+	defer C.free(unsafe.Pointer(n))
+	i := C.nvgFindFont(self.cbase, n)
+	if i == -1 {
+		return nil, errors.New("Font not found: " + name)
+	}
+	return &Font{i}, nil
+}
+
+// Sets the font size of current text style.
+func (self Context) FontSize(size float64) {
+	C.nvgFontSize(self.cbase, C.float(size))
+}
+
+// Sets the blur of current text style.
+func (self Context) FontBlur(blur float64) {
+	C.nvgFontBlur(self.cbase, C.float(blur))
+}
+
+// Sets the letter spacing of current text style.
+func (self Context) TextLetterSpacing(spacing float64) {
+	C.nvgTextLetterSpacing(self.cbase, C.float(spacing))
+}
+
+// Sets the proportional line height of current text style. The line height is specified as multiple of font size.
+func (self Context) TextLineHeight(h float64) {
+	C.nvgTextLineHeight(self.cbase, C.float(h))
+}
+
+// Sets the text align of current text style, see NVGaling for options.
+func (self Context) TextAlign(align Align) {
+	C.nvgTextAlign(self.cbase, C.int(align))
+}
+
+// Sets the font face based on specified id of current text style.
+func (self Context) SetFont(f *Font) {
+	C.nvgFontFaceId(self.cbase, f.cbase)
+}
+
+// // Sets the font face based on specified name of current text style.
+func (self Context) FontFace(name string) {
+	n := C.CString(name)
+	defer C.free(unsafe.Pointer(n))
+	C.nvgFontFace(self.cbase, n)
+}
+
+// // Draws text string at specified location. If end is specified only the sub-string up to the end is drawn.
+func (self Context) Text(x, y float64, text string) {
+	t := C.CString(text)
+	defer C.free(unsafe.Pointer(t))
+	C.nvgText(self.cbase, C.float(x), C.float(y), t, nil)
+}
+
 type GlyphPosition struct {
 	cbase *C.NVGglyphPosition
 }
 
 type TextRow struct {
 	cbase *C.NVGtextRow
+}
+
+type Font struct {
+	cbase C.int
 }
