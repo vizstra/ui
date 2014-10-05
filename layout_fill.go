@@ -1,27 +1,32 @@
 package ui
 
-import ()
+import (
+	"github.com/vizstra/vg"
+)
 
 type Fill struct {
-	child View
+	parent Drawer
+	child  Drawer
+	Margin
+	Mask
 }
 
-func NewFill() *Fill {
-	return &Fill{nil}
+func NewFill(parent Drawer) *Fill {
+	return &Fill{parent, nil, Margin{0, 0, 0, 0}, Mask{true}}
 }
 
-func (self *Fill) SetChild(child View) {
+func (self *Fill) SetChild(child Drawer) {
 	self.child = child
 }
 
-func (self *Fill) Child() View {
+func (self *Fill) Child() Drawer {
 	return self.child
 }
 
-func (self *Fill) Draw(x, y, w, h float64, ctx Context) {
+func (self *Fill) Draw(x, y, w, h float64, ctx vg.Context) {
 	if self.child == nil {
 		return
 	}
-
-	self.child.Draw(x, y, w, h, ctx)
+	m := self.Margin
+	self.child.Draw(x+m.Left, y+m.Top, w-(m.Left+m.Right), h-(m.Top+m.Bottom), ctx)
 }

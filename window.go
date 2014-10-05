@@ -1,26 +1,23 @@
 package ui
 
 import (
-	"github.com/go-gl/gl"
 	glfw "github.com/go-gl/glfw3"
-	// "image/color"
+	gl "github.com/vizstra/opengl/gl43"
+	"github.com/vizstra/vg"
 	"log"
-	// "time"
 )
 
-var RR float32 = .0
+var RR gl.Float = .0
 
 type Window struct {
-	name                  string
-	endchan               chan bool
-	window                *glfw.Window
-	renderer              Renderer
-	child                 View
-	keyHandlers           map[KeyHandler]bool
-	charHandlers          map[CharHandler]bool
-	mouseButtonHandlers   map[MouseButtonHandler]bool
-	mousePositionHandlers map[MousePositionHandler]bool
-	mouseEnterHandlers    map[MouseEnterHandler]bool
+	name     string
+	endchan  chan bool
+	window   *glfw.Window
+	renderer vg.Renderer
+	child    Drawer
+	KeyDispatch
+	CharDispatch
+	MouseDispatch
 }
 
 func NewWindow(name, title string, w, h, x, y int) *Window {
@@ -38,26 +35,25 @@ func NewWindow(name, title string, w, h, x, y int) *Window {
 		window,
 		nil,
 		nil,
-		make(map[KeyHandler]bool, 0),
-		make(map[CharHandler]bool, 0),
-		make(map[MouseButtonHandler]bool, 0),
-		make(map[MousePositionHandler]bool, 0),
-		make(map[MouseEnterHandler]bool, 0),
+		NewKeyDispatch(),
+		NewCharDispatch(),
+		MouseDispatch{
+			make(map[MouseButtonHandler]bool, 0),
+			make(map[MousePositionHandler]bool, 0),
+			make(map[MouseEnterHandler]bool, 0),
+		},
 	}
 
 	window.SetPosition(x, y)
 	window.MakeContextCurrent()
 
 	window.SetKeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-		for h, _ := range win.keyHandlers {
-			h.HandleKey(Key(key), scancode, Action(action), ModifierKey(mods))
-		}
+		ke := KeyEvent{Key(key), scancode, Action(action), ModifierKey(mods)}
+		win.KeyDispatch.Dispatch(ke)
 	})
 
 	window.SetCharacterCallback(func(w *glfw.Window, char uint) {
-		for h, _ := range win.charHandlers {
-			h.HandleChar(char)
-		}
+		win.CharDispatch.Dispatch(char)
 	})
 
 	window.SetMouseButtonCallback(func(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
@@ -90,47 +86,64 @@ func (self *Window) HandleMouseEnter(b bool) {
 	}
 }
 
+func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
+	fbw, fbh := self.FramebufferSize()
+
+	// Calculate pixel ration for hi-dpi devices.
+	gl.ClearColor(.88, .9, .88, 0)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+
+	//Do OpenGL stuff
+	// Iterate over scene, rendering what can be rendered
+	if self.renderer != nil {
+		self.renderer.Render()
+	}
+
+	////////////////////////////
+	// gl.Viewport(0, 0, 50, 50)
+	// gl.Begin(gl.TRIANGLES)
+	// gl.Color3f(RR, 0.2, 0.3)
+	// gl.Vertex3f(0, 0, 0)
+	// gl.Vertex3f(1, 0, 0)
+	// gl.Vertex3f(0, 1, 0)
+	// gl.End()
+	// gl.Rotatef(1, 0, 0, 1)
+	///////////////////////////
+
+	// 2D Display
+	r := float64(fbw) / float64(w)
+	gl.Viewport(0, 0, gl.Sizei(fbw), gl.Sizei(fbh))
+
+	if self.child != nil {
+		ctx.BeginFrame(w, h, r)
+		self.child.Draw(0.0, 0.0, float64(w), float64(h), ctx)
+		ctx.EndFrame()
+	}
+}
+
 func (self *Window) Start() chan bool {
+	gl.Init()
+
 	// This is the ever important draw goroutine
 	go func() {
-		vg := NewContext()
+		e := gl.Init()
+		if e != nil {
+			panic(e)
+		}
+		ctx := vg.NewContext()
 		for !self.window.ShouldClose() {
 			w, h := self.Size()
-			fbw, fbh := self.FramebufferSize()
-			// Calculate pixel ration for hi-dpi devices.
-			gl.ClearColor(.88, .9, .88, 1)
-			gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
-
-			//Do OpenGL stuff
-			// Iterate over scene, rendering what can be rendered
-			if self.renderer != nil {
-				self.renderer.Render()
-			}
-
-			// gl.Viewport(0, 0, 50, 50)
-			gl.Begin(gl.TRIANGLES)
-			gl.Color3f(RR, 0.2, 0.3)
-			gl.Vertex3f(0, 0, 0)
-			gl.Vertex3f(1, 0, 0)
-			gl.Vertex3f(0, 1, 0)
-			gl.End()
-
-			gl.Rotatef(1, 0, 0, 1)
-
-			// 2D Display
-			r := float64(fbw) / float64(w)
-			gl.Viewport(0, 0, fbw, fbh)
-
-			if self.child != nil {
-				vg.BeginFrame(w, h, r)
-
-				self.child.Draw(0.0, 0.0, float64(w), float64(h), vg)
-				vg.EndFrame()
-			}
-
+			self.Draw(0, 0, w, h, ctx)
 			self.window.SwapBuffers()
-
 			glfw.PollEvents()
+
+			// var total gl.Int
+			// gl.GetIntegerv(0x9048, &total)
+
+			// var available gl.Int
+			// gl.GetIntegerv(0x9049, &available)
+
+			// fmt.Println(total, available)
 		}
 		glfw.Terminate()
 		self.endchan <- true
@@ -138,7 +151,7 @@ func (self *Window) Start() chan bool {
 	return self.endchan
 }
 
-func (self *Window) SetChild(child View) {
+func (self *Window) SetChild(child Drawer) {
 	self.child = child
 	if h, ok := child.(KeyHandler); ok {
 		self.AddKeyHandler(h)
@@ -161,15 +174,15 @@ func (self *Window) SetChild(child View) {
 	}
 }
 
-func (self *Window) Child() View {
+func (self *Window) Child() Drawer {
 	return self.child
 }
 
-func (self *Window) SetRenderer(renderer Renderer) {
+func (self *Window) SetRenderer(renderer vg.Renderer) {
 	self.renderer = renderer
 }
 
-func (self *Window) Renderer() Renderer {
+func (self *Window) Renderer() vg.Renderer {
 	return self.renderer
 }
 
@@ -211,36 +224,6 @@ func (self *Window) Show() {
 
 func (self *Window) Restore() {
 	self.window.Restore()
-}
-
-func (self *Window) AddKeyHandler(h KeyHandler) {
-	if _, ok := self.keyHandlers[h]; !ok {
-		self.keyHandlers[h] = true
-	}
-}
-
-func (self *Window) AddCharHandler(h CharHandler) {
-	if _, ok := self.charHandlers[h]; !ok {
-		self.charHandlers[h] = true
-	}
-}
-
-func (self *Window) AddMouseButtonHandler(h MouseButtonHandler) {
-	if _, ok := self.mouseButtonHandlers[h]; !ok {
-		self.mouseButtonHandlers[h] = true
-	}
-}
-
-func (self *Window) AddMousePositionHandler(h MousePositionHandler) {
-	if _, ok := self.mousePositionHandlers[h]; !ok {
-		self.mousePositionHandlers[h] = true
-	}
-}
-
-func (self *Window) AddMouseEnterHandler(h MouseEnterHandler) {
-	if _, ok := self.mouseEnterHandlers[h]; !ok {
-		self.mouseEnterHandlers[h] = true
-	}
 }
 
 func errorCallback(err glfw.ErrorCode, desc string) {
