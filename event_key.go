@@ -43,6 +43,14 @@ func (self *KeyDispatch) Dispatch(ke KeyEvent) {
 	}
 }
 
+// AddDrawerKeyHandler adds the drawer to the key handler
+// list if it satisfies the KeyHandler interface.
+func (self *KeyDispatch) AddDrawerKeyHandler(d Drawer) {
+	if h, ok := d.(KeyHandler); ok {
+		self.AddKeyHandler(h)
+	}
+}
+
 // AddKeyHandler adds the key handler from the dispatch.
 func (self *KeyDispatch) AddKeyHandler(h KeyHandler) {
 	if _, ok := self.keyHandlers[h]; !ok {

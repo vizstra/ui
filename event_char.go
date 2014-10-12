@@ -26,6 +26,14 @@ func NewCharDispatch() CharDispatch {
 	}
 }
 
+// AddDrawerCharHandler will add the drawer to the char
+// handler if it satisfies the CharHandler interface.
+func (self *CharDispatch) AddDrawerCharHandler(d Drawer) {
+	if h, ok := d.(CharHandler); ok {
+		self.AddCharHandler(h)
+	}
+}
+
 func (self *CharDispatch) AddCharHandler(h CharHandler) {
 	if _, ok := self.charHandlers[h]; !ok {
 		self.charHandlers[h] = true

@@ -37,11 +37,7 @@ func NewWindow(name, title string, w, h, x, y int) *Window {
 		nil,
 		NewKeyDispatch(),
 		NewCharDispatch(),
-		MouseDispatch{
-			make(map[MouseButtonHandler]bool, 0),
-			make(map[MousePositionHandler]bool, 0),
-			make(map[MouseEnterHandler]bool, 0),
-		},
+		NewMouseDispath(),
 	}
 
 	window.SetPosition(x, y)
@@ -57,8 +53,8 @@ func NewWindow(name, title string, w, h, x, y int) *Window {
 	})
 
 	window.SetMouseButtonCallback(func(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-		for h, _ := range win.mouseButtonHandlers {
-			h.HandleMouseButton(MouseButton(button), Action(action), ModifierKey(mods))
+		for h, _ := range win.mouseClickHandlers {
+			h.HandleMouseClick(MouseButtonState{MouseButton(button), Action(action), ModifierKey(mods)})
 		}
 	})
 
@@ -115,7 +111,7 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 	gl.Viewport(0, 0, gl.Sizei(fbw), gl.Sizei(fbh))
 
 	if self.child != nil {
-		ctx.BeginFrame(w, h, r)
+		ctx.BeginFrame(int(w), int(h), r)
 		self.child.Draw(0.0, 0.0, float64(w), float64(h), ctx)
 		ctx.EndFrame()
 	}
@@ -133,7 +129,7 @@ func (self *Window) Start() chan bool {
 		ctx := vg.NewContext()
 		for !self.window.ShouldClose() {
 			w, h := self.Size()
-			self.Draw(0, 0, w, h, ctx)
+			self.Draw(0, 0, float64(w), float64(h), ctx)
 			self.window.SwapBuffers()
 			glfw.PollEvents()
 
@@ -153,25 +149,11 @@ func (self *Window) Start() chan bool {
 
 func (self *Window) SetChild(child Drawer) {
 	self.child = child
-	if h, ok := child.(KeyHandler); ok {
-		self.AddKeyHandler(h)
-	}
-
-	if h, ok := child.(CharHandler); ok {
-		self.AddCharHandler(h)
-	}
-
-	if h, ok := child.(MouseButtonHandler); ok {
-		self.AddMouseButtonHandler(h)
-	}
-
-	if h, ok := child.(MousePositionHandler); ok {
-		self.AddMousePositionHandler(h)
-	}
-
-	if h, ok := child.(MouseEnterHandler); ok {
-		self.AddMouseEnterHandler(h)
-	}
+	self.AddDrawerKeyHandler(child)
+	self.AddDrawerCharHandler(child)
+	self.AddDrawerMouseClickHandler(child)
+	self.AddDrawerMousePositionHandler(child)
+	self.AddDrawerMouseEnterHandler(child)
 }
 
 func (self *Window) Child() Drawer {
