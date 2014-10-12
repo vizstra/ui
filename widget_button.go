@@ -69,7 +69,7 @@ func NewButton(parent Drawer, name, text string) *Button {
 
 func (self *Button) Draw(x, y, w, h float64, ctx vg.Context) {
 	c := CloneColor(self.displayColor)
-	c.A = .3
+	// c.A = .3
 	bg := ctx.BoxGradient(x, y, w, h/3, h/2, h, c, self.displayColor)
 
 	ctx.BeginPath()

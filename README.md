@@ -1,4 +1,22 @@
-Vistra UI
-=========
+Vistra is a set of OpenGL based UI library for Go developers.
 
-Nothing yet.
+## Widgets
+- [x] Button
+- [ ] Text
+- [ ] Label
+- [ ] Scrollbar
+- [ ] List
+- [ ] Radio
+- [ ] Check
+- [ ] Progress Bar
+- [ ] Image Button
+- [ ] Tree
+- [ ] Table
+- [ ] Line Chart
+- [ ] Pie Chart
+
+## Layouts
+- [x] Fill
+- [ ] Grid
+
+
