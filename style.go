@@ -2,6 +2,10 @@ package ui
 
 import ()
 
+/*
+ * This is a good example of a data trait
+ */
+
 type Margin struct {
 	Top, Bottom, Left, Right float64
 }
@@ -19,6 +23,17 @@ func (self Margin) Margin() Margin {
 
 type Padding struct {
 	Top, Bottom, Left, Right float64
+}
+
+func (self *Padding) SetPadding(p Padding) {
+	self.Top = p.Top
+	self.Bottom = p.Bottom
+	self.Left = p.Left
+	self.Right = p.Right
+}
+
+func (self Padding) Padding() Padding {
+	return self
 }
 
 type Mask struct {

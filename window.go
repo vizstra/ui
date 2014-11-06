@@ -5,6 +5,7 @@ import (
 	gl "github.com/vizstra/opengl/gl43"
 	"github.com/vizstra/vg"
 	"log"
+	"runtime"
 )
 
 var RR gl.Float = .0
@@ -37,7 +38,7 @@ func NewWindow(name, title string, w, h, x, y int) *Window {
 		nil,
 		NewKeyDispatch(),
 		NewCharDispatch(),
-		NewMouseDispath(),
+		NewMouseDispatch(),
 	}
 
 	window.SetPosition(x, y)
@@ -86,7 +87,7 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 	fbw, fbh := self.FramebufferSize()
 
 	// Calculate pixel ration for hi-dpi devices.
-	gl.ClearColor(.88, .9, .88, 0)
+	gl.ClearColor(.87, .87, .87, 0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 
 	//Do OpenGL stuff
@@ -118,16 +119,23 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 }
 
 func (self *Window) Start() chan bool {
-	gl.Init()
+	e := gl.Init()
+	if e != nil {
+		panic(e)
+	}
 
 	// This is the ever important draw goroutine
 	go func() {
-		e := gl.Init()
-		if e != nil {
-			panic(e)
-		}
+
+		// super important
+		runtime.LockOSThread()
 		ctx := vg.NewContext()
 		for !self.window.ShouldClose() {
+			// gl.Enable(gl.BLEND)
+			// gl.Enable(gl.LINE_SMOOTH)
+			// gl.Hint(gl.LINE_SMOOTH_HINT, gl.NICEST)
+			// gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
 			w, h := self.Size()
 			self.Draw(0, 0, float64(w), float64(h), ctx)
 			self.window.SwapBuffers()

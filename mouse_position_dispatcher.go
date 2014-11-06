@@ -22,7 +22,7 @@ type MouseDispatch struct {
 	mouseEnterChans       map[chan bool]bool
 }
 
-func NewMouseDispath() MouseDispatch {
+func NewMouseDispatch() MouseDispatch {
 	return MouseDispatch{
 		make(map[MouseClickHandler]bool, 0),
 		make(map[MousePositionHandler]bool, 0),

@@ -24,7 +24,7 @@ func NewFill(parent Drawer) *Fill {
 		Mask{true},
 		NewKeyDispatch(),
 		NewCharDispatch(),
-		NewMouseDispath(),
+		NewMouseDispatch(),
 	}
 
 	inside := false
