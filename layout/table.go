@@ -8,6 +8,7 @@ import (
 type cell struct {
 	drawer         ui.Drawer
 	row, col, w, h int
+	mouseInside    bool
 }
 
 const (
@@ -34,7 +35,7 @@ type Table struct {
 }
 
 func NewTable(parent ui.Drawer) *Table {
-	g := &Table{
+	table := &Table{
 		parent,
 		make([]*cell, 0),
 		make([]float64, 0),
@@ -47,7 +48,9 @@ func NewTable(parent ui.Drawer) *Table {
 		ui.NewCharDispatch(),
 		ui.NewMouseDispatch(),
 	}
-	return g
+
+	table.configRouter(parent)
+	return table
 }
 
 func (self *Table) SetCellMargin(m ui.Margin) {
@@ -82,7 +85,7 @@ func (self *Table) AddCell(child ui.Drawer, col, row int) error {
 }
 
 func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
-	gvc := &cell{child, row, col, w, h}
+	gvc := &cell{child, row, col, w, h, false}
 
 	self.children = append(self.children, gvc)
 
@@ -97,19 +100,18 @@ func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
 	for col+w-1 >= len(self.cellWidths) {
 		self.cellWidths = append(self.cellWidths, self.defaultCellWidth)
 	}
-
 	return nil
 }
 
 func (self *Table) Draw(x, y, w, h float64, ctx vg.Context) {
 	for _, child := range self.children {
-		x, y, w, h := self.bounds(child)
-		child.drawer.Draw(x, y, w, h, ctx)
+		r := self.bounds(child)
+		child.drawer.Draw(r.X, r.Y, r.W, r.H, ctx)
 	}
 }
 
-func (self *Table) bounds(child *cell) (x, y, w, h float64) {
-
+func (self *Table) bounds(child *cell) ui.Rectangle {
+	x, y, w, h := 0.0, 0.0, 0.0, 0.0
 	for i := 0; i < child.col+child.w && i < len(self.cellWidths); i++ {
 		if i < child.col {
 			x += self.cellPadding.Left
@@ -133,5 +135,60 @@ func (self *Table) bounds(child *cell) (x, y, w, h float64) {
 			h += self.cellHeights[i]
 		}
 	}
-	return x, y, w, h
+	return ui.Rectangle{x, y, w, h}
+}
+
+// configRouter will forward events from the parent
+// through to the attached handlers.
+func (self *Table) configRouter(parent ui.Drawer) {
+	var inside bool
+	var mx, my float64
+
+	if p, ok := parent.(ui.MousePositionDispatcher); ok {
+		p.AddMousePositionCB(func(x, y float64) {
+			mx, my = x, y
+			for _, cell := range self.children {
+				child := cell.drawer
+				inchild := self.bounds(cell).Contains(x, y)
+				if !inchild {
+					if c, ok := child.(ui.MouseEnterDispatcher); ok && cell.mouseInside {
+						c.DispatchMouseEnter(false)
+						cell.mouseInside = false
+					}
+					continue
+				}
+
+				if c, ok := child.(ui.MouseEnterDispatcher); ok && !cell.mouseInside {
+					c.DispatchMouseEnter(true)
+					cell.mouseInside = true
+				}
+
+				if c, ok := child.(ui.MousePositionDispatcher); ok {
+					c.DispatchMousePosition(x, y)
+				}
+			}
+			self.DispatchMousePosition(x, y)
+		})
+	}
+
+	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
+		p.AddMouseEnterCB(func(in bool) {
+			if !in {
+				inside = in
+				self.DispatchMouseEnter(inside)
+			}
+		})
+	}
+
+	if p, ok := parent.(ui.MouseClickDispatcher); ok {
+		p.AddMouseClickCB(func(m ui.MouseButtonState) {
+			for _, cell := range self.children {
+				child := cell.drawer
+				if c, ok := child.(ui.MouseClickDispatcher); ok && self.bounds(cell).Contains(mx, my) {
+					c.DispatchMouseClick(m)
+				}
+			}
+			self.DispatchMouseClick(m)
+		})
+	}
 }

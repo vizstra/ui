@@ -5,15 +5,16 @@ import ()
 type MouseEnterDispatcher interface {
 	AddMouseEnterCB(func(bool)) MouseEnterHandler
 	AddMouseEnterHandler(MouseEnterHandler)
+	DispatchMouseEnter(in bool)
 }
 
 func (self *MouseDispatch) DispatchMouseEnter(in bool) {
-	for k, _ := range self.mouseEnterHandlers {
+	for k, _ := range self.MouseEnterHandlers {
 		k.HandleMouseEnter(in)
 		return
 	}
 
-	for k, _ := range self.mouseEnterChans {
+	for k, _ := range self.MouseEnterChans {
 		k <- in
 	}
 }
@@ -35,8 +36,8 @@ func NewMouseEnterHandler(h func(bool)) MouseEnterHandler {
 }
 
 func (self *MouseDispatch) AddMouseEnterHandler(h MouseEnterHandler) {
-	if _, ok := self.mouseEnterHandlers[h]; !ok {
-		self.mouseEnterHandlers[h] = true
+	if _, ok := self.MouseEnterHandlers[h]; !ok {
+		self.MouseEnterHandlers[h] = true
 	}
 }
 

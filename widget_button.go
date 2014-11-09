@@ -14,6 +14,7 @@ type Button struct {
 	HoverBackground color.Color
 	ClickBackground color.Color
 	displayColor    color.Color
+	inside          bool
 	MouseDispatch
 }
 
@@ -27,44 +28,35 @@ func NewButton(parent Drawer, name, text string) *Button {
 		Colors[COLOR_BUTTON_HOVER_BACKGROUND],
 		Colors[COLOR_BUTTON_CLICK_BACKGROUND],
 		Colors[COLOR_BUTTON_BACKGROUND],
+		false,
 		NewMouseDispatch(),
 	}
+	return self
+}
 
-	if p, ok := parent.(MousePositionDispatcher); ok {
-		p.AddMousePositionCB(func(x, y float64) {
-			self.DispatchMousePosition(x, y)
-		})
+func (self *Button) determineBackground() {
+	if self.inside {
+		self.displayColor = self.HoverBackground
+	} else {
+		self.displayColor = self.Background
 	}
+}
 
-	inside := false
-	colorbg := func() {
-		if inside {
-			self.displayColor = self.HoverBackground
-		} else {
-			self.displayColor = self.Background
+func (self *Button) DispatchMouseEnter(in bool) {
+	self.inside = in
+	self.determineBackground()
+	self.MouseDispatch.DispatchMouseEnter(in)
+}
+
+func (self *Button) DispatchMouseClick(m MouseButtonState) {
+	if m.MouseButton == MOUSE_BUTTON_LEFT || m.MouseButton == MOUSE_BUTTON_1 {
+		self.determineBackground()
+		if m.Action == PRESS {
+			self.displayColor = self.ClickBackground
 		}
 	}
+	self.MouseDispatch.DispatchMouseClick(m)
 
-	if p, ok := parent.(MouseEnterDispatcher); ok {
-		p.AddMouseEnterCB(func(in bool) {
-			inside = in
-			colorbg()
-			self.DispatchMouseEnter(in)
-		})
-	}
-
-	if p, ok := parent.(MouseClickDispatcher); ok {
-		p.AddMouseClickCB(func(m MouseButtonState) {
-			if m.MouseButton == MOUSE_BUTTON_LEFT || m.MouseButton == MOUSE_BUTTON_1 {
-				colorbg()
-				if m.Action == PRESS {
-					self.displayColor = self.ClickBackground
-				}
-			}
-			self.DispatchMouseClick(m)
-		})
-	}
-	return self
 }
 
 func (self *Button) Draw(x, y, w, h float64, ctx vg.Context) {

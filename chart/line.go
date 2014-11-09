@@ -95,28 +95,6 @@ func NewLineChart(parent ui.Drawer, name string, mdl LineChartModeler) *LineChar
 		ui.NewMouseDispatch(),
 	}
 
-	if p, ok := parent.(ui.MousePositionDispatcher); ok {
-		p.AddMousePositionCB(func(x, y float64) {
-			self.DispatchMousePosition(x, y)
-		})
-	}
-
-	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
-		p.AddMouseEnterCB(func(in bool) {
-			self.DispatchMouseEnter(in)
-		})
-	}
-
-	if p, ok := parent.(ui.MouseClickDispatcher); ok {
-		p.AddMouseClickCB(func(m ui.MouseButtonState) {
-			if m.MouseButton == ui.MOUSE_BUTTON_LEFT || m.MouseButton == ui.MOUSE_BUTTON_1 {
-				if m.Action == ui.PRESS {
-
-				}
-			}
-			self.DispatchMouseClick(m)
-		})
-	}
 	return self
 }
 

@@ -1,39 +1,44 @@
-package ui
+package layout
 
 import (
+	"github.com/vizstra/ui"
 	"github.com/vizstra/vg"
 )
 
 type Fill struct {
-	parent Drawer
-	child  Drawer
-	Rectangle
-	Margin
-	Mask
-	KeyDispatch
-	CharDispatch
-	MouseDispatch
+	parent ui.Drawer
+	child  ui.Drawer
+	ui.Rectangle
+	ui.Margin
+	ui.Mask
+	ui.KeyDispatch
+	ui.CharDispatch
+	ui.MouseDispatch
 }
 
-func NewFill(parent Drawer) *Fill {
+func NewFill(parent ui.Drawer) *Fill {
 	f := &Fill{
 		parent,
 		nil,
-		Rectangle{Point2d{0, 0}, Size2d{0, 0}},
-		Margin{0, 0, 0, 0},
-		Mask{true},
-		NewKeyDispatch(),
-		NewCharDispatch(),
-		NewMouseDispatch(),
+		ui.Rectangle{0, 0, 0, 0},
+		ui.Margin{0, 0, 0, 0},
+		ui.NewMask(true),
+		ui.NewKeyDispatch(),
+		ui.NewCharDispatch(),
+		ui.NewMouseDispatch(),
 	}
+	f.attach(parent)
+	return f
+}
 
+func (f *Fill) attach(parent ui.Drawer) {
 	inside := false
-	if p, ok := parent.(MousePositionDispatcher); ok {
+	if p, ok := parent.(ui.MousePositionDispatcher); ok {
 		p.AddMousePositionCB(func(x, y float64) {
-			if x > f.Rectangle.Position.X+f.Margin.Left &&
-				y > f.Rectangle.Position.Y+f.Margin.Top &&
-				x < f.Rectangle.Position.X+f.Rectangle.Size.W-f.Margin.Right &&
-				y < f.Rectangle.Position.Y+f.Rectangle.Size.H-f.Margin.Bottom {
+			if x > f.Rectangle.X+f.Margin.Left &&
+				y > f.Rectangle.Y+f.Margin.Top &&
+				x < f.Rectangle.X+f.Rectangle.W-f.Margin.Right &&
+				y < f.Rectangle.Y+f.Rectangle.H-f.Margin.Bottom {
 				if !inside {
 					inside = true
 					f.DispatchMouseEnter(inside)
@@ -46,7 +51,7 @@ func NewFill(parent Drawer) *Fill {
 		})
 	}
 
-	if p, ok := parent.(MouseEnterDispatcher); ok {
+	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
 		p.AddMouseEnterCB(func(in bool) {
 			if !in {
 				inside = in
@@ -55,18 +60,16 @@ func NewFill(parent Drawer) *Fill {
 		})
 	}
 
-	if p, ok := parent.(MouseClickDispatcher); ok {
-		p.AddMouseClickCB(func(m MouseButtonState) {
+	if p, ok := parent.(ui.MouseClickDispatcher); ok {
+		p.AddMouseClickCB(func(m ui.MouseButtonState) {
 			if inside {
 				f.DispatchMouseClick(m)
 			}
 		})
 	}
-
-	return f
 }
 
-func (self *Fill) SetChild(child Drawer) {
+func (self *Fill) SetChild(child ui.Drawer) {
 	self.child = child
 	self.AddDrawerKeyHandler(child)
 	self.AddDrawerCharHandler(child)
@@ -75,12 +78,12 @@ func (self *Fill) SetChild(child Drawer) {
 	self.AddDrawerMouseEnterHandler(child)
 }
 
-func (self *Fill) Child() Drawer {
+func (self *Fill) Child() ui.Drawer {
 	return self.child
 }
 
 func (self *Fill) Draw(x, y, w, h float64, ctx vg.Context) {
-	self.Rectangle = Rectangle{Point2d{x, y}, Size2d{w, h}}
+	self.Rectangle = ui.Rectangle{x, y, w, h}
 	if self.child == nil {
 		return
 	}

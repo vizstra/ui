@@ -11,15 +11,16 @@ type MouseDispatcher interface {
 type MousePositionDispatcher interface {
 	AddMousePositionCB(func(float64, float64)) MousePositionHandler
 	AddMousePositionHandler(MousePositionHandler)
+	DispatchMousePosition(x, y float64)
 }
 
 type MouseDispatch struct {
-	mouseClickHandlers    map[MouseClickHandler]bool
-	mousePositionHandlers map[MousePositionHandler]bool
-	mouseEnterHandlers    map[MouseEnterHandler]bool
-	mouseClickChans       map[chan MouseButtonState]bool
-	mousePositionChans    map[chan MousePositionState]bool
-	mouseEnterChans       map[chan bool]bool
+	MouseClickHandlers    map[MouseClickHandler]bool
+	MousePositionHandlers map[MousePositionHandler]bool
+	MouseEnterHandlers    map[MouseEnterHandler]bool
+	MouseClickChans       map[chan MouseButtonState]bool
+	MousePositionChans    map[chan MousePositionState]bool
+	MouseEnterChans       map[chan bool]bool
 }
 
 func NewMouseDispatch() MouseDispatch {
@@ -34,12 +35,12 @@ func NewMouseDispatch() MouseDispatch {
 }
 
 func (self *MouseDispatch) DispatchMousePosition(x, y float64) {
-	for k, _ := range self.mousePositionHandlers {
+	for k, _ := range self.MousePositionHandlers {
 		k.HandleMousePosition(x, y)
 		return
 	}
 
-	for k, _ := range self.mousePositionChans {
+	for k, _ := range self.MousePositionChans {
 		k <- MousePositionState{x, y}
 	}
 }
@@ -61,8 +62,8 @@ func NewMousePositionHandler(h func(float64, float64)) MousePositionHandler {
 }
 
 func (self *MouseDispatch) AddMousePositionHandler(h MousePositionHandler) {
-	if _, ok := self.mousePositionHandlers[h]; !ok {
-		self.mousePositionHandlers[h] = true
+	if _, ok := self.MousePositionHandlers[h]; !ok {
+		self.MousePositionHandlers[h] = true
 	}
 }
 

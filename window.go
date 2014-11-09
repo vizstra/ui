@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-var RR gl.Float = .0
+var RR gl.Float = 0.0
 
 type Window struct {
 	name     string
@@ -21,7 +21,7 @@ type Window struct {
 	MouseDispatch
 }
 
-func NewWindow(name, title string, w, h, x, y int) *Window {
+func NewWindow(name, title string, x, y, w, h int) *Window {
 	glfw.SetErrorCallback(errorCallback)
 
 	// TODO Monitor support needs to be added
@@ -54,19 +54,19 @@ func NewWindow(name, title string, w, h, x, y int) *Window {
 	})
 
 	window.SetMouseButtonCallback(func(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-		for h, _ := range win.mouseClickHandlers {
+		for h, _ := range win.MouseClickHandlers {
 			h.HandleMouseClick(MouseButtonState{MouseButton(button), Action(action), ModifierKey(mods)})
 		}
 	})
 
 	window.SetCursorPositionCallback(func(w *glfw.Window, xpos float64, ypos float64) {
-		for h, _ := range win.mousePositionHandlers {
+		for h, _ := range win.MousePositionHandlers {
 			h.HandleMousePosition(xpos, ypos)
 		}
 	})
 
 	window.SetCursorEnterCallback(func(w *glfw.Window, entered bool) {
-		for h, _ := range win.mouseEnterHandlers {
+		for h, _ := range win.MouseEnterHandlers {
 			h.HandleMouseEnter(entered)
 		}
 	})

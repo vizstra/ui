@@ -26,6 +26,7 @@ const (
 type MouseClickDispatcher interface {
 	AddMouseClickCB(func(MouseButtonState)) MouseClickHandler
 	AddMouseClickHandler(MouseClickHandler)
+	DispatchMouseClick(m MouseButtonState)
 }
 
 type MouseButton glfw3.MouseButton
@@ -40,12 +41,12 @@ type MouseButtonState struct {
 }
 
 func (self *MouseDispatch) DispatchMouseClick(m MouseButtonState) {
-	for k, _ := range self.mouseClickHandlers {
+	for k, _ := range self.MouseClickHandlers {
 		k.HandleMouseClick(m)
 		return
 	}
 
-	for k, _ := range self.mouseClickChans {
+	for k, _ := range self.MouseClickChans {
 		k <- m
 	}
 }
@@ -63,8 +64,8 @@ func NewMouseClickHandler(h func(MouseButtonState)) MouseClickHandler {
 }
 
 func (self *MouseDispatch) AddMouseClickHandler(h MouseClickHandler) {
-	if _, ok := self.mouseClickHandlers[h]; !ok {
-		self.mouseClickHandlers[h] = true
+	if _, ok := self.MouseClickHandlers[h]; !ok {
+		self.MouseClickHandlers[h] = true
 	}
 }
 

@@ -40,6 +40,10 @@ type Mask struct {
 	mask bool
 }
 
+func NewMask(m bool) Mask {
+	return Mask{m}
+}
+
 func (self *Mask) SetMask(b bool) {
 	self.mask = b
 }

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	// "fmt"
 	"github.com/vizstra/vg"
 	"image/color"
 	"os"
@@ -20,6 +21,7 @@ type ImageButton struct {
 	hoverImagePath  string
 	hoverImage      *vg.Image
 	displayImage    *vg.Image
+	inside          bool
 	MouseDispatch
 }
 
@@ -38,51 +40,42 @@ func NewImageButton(parent Drawer, name, text string) *ImageButton {
 		"",
 		nil,
 		nil,
+		false,
 		NewMouseDispatch(),
 	}
 
-	if p, ok := parent.(MousePositionDispatcher); ok {
-		p.AddMousePositionCB(func(x, y float64) {
-			self.DispatchMousePosition(x, y)
-		})
-	}
+	return self
+}
 
-	inside := false
-	colorbg := func() {
-		if inside {
-			self.displayColor = self.HoverBackground
-			if self.hoverImage != nil {
-				self.displayImage = self.hoverImage
-			}
-		} else {
-			self.displayColor = self.Background
-			if self.image != nil {
-				self.displayImage = self.image
-			}
+func (self *ImageButton) determineBackground() {
+	if self.inside {
+		self.displayColor = self.HoverBackground
+		if self.hoverImage != nil {
+			self.displayImage = self.hoverImage
+		}
+	} else {
+		self.displayColor = self.Background
+		if self.image != nil {
+			self.displayImage = self.image
 		}
 	}
+}
 
-	if p, ok := parent.(MouseEnterDispatcher); ok {
-		p.AddMouseEnterCB(func(in bool) {
-			inside = in
-			colorbg()
-			self.DispatchMouseEnter(in)
-		})
+func (self *ImageButton) DispatchMouseEnter(in bool) {
+	self.inside = in
+	self.determineBackground()
+	self.MouseDispatch.DispatchMouseEnter(in)
+}
+
+func (self *ImageButton) DispatchMouseClick(m MouseButtonState) {
+	if m.MouseButton == MOUSE_BUTTON_LEFT || m.MouseButton == MOUSE_BUTTON_1 {
+		self.determineBackground()
+		if m.Action == PRESS {
+			self.displayColor = self.ClickBackground
+		}
 	}
+	self.MouseDispatch.DispatchMouseClick(m)
 
-	if p, ok := parent.(MouseClickDispatcher); ok {
-		p.AddMouseClickCB(func(m MouseButtonState) {
-			if m.MouseButton == MOUSE_BUTTON_LEFT || m.MouseButton == MOUSE_BUTTON_1 {
-				colorbg()
-				if m.Action == PRESS {
-					self.displayColor = self.ClickBackground
-				}
-			}
-			self.DispatchMouseClick(m)
-		})
-	}
-
-	return self
 }
 
 func (self *ImageButton) SetImagePath(path string) error {
