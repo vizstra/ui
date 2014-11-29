@@ -2,8 +2,9 @@ package chart
 
 import (
 	"github.com/vizstra/ui"
+	. "github.com/vizstra/ui/color"
+	"github.com/vizstra/ui/widget"
 	"github.com/vizstra/vg"
-	"image/color"
 	"math"
 )
 
@@ -50,7 +51,7 @@ func (self *LineChartModel) Limits() (min, max, count float64) {
 
 type Series struct {
 	Data        []float64
-	Color       color.Color
+	Color       Color
 	StrokeWidth float64
 }
 
@@ -71,35 +72,29 @@ func (self *Series) MinMax() (min, max float64) {
 }
 
 type LineChart struct {
-	Parent       ui.Drawer
-	Name         string
+	widget.Widget
 	Model        LineChartModeler
 	Title        Title
-	Radius       float64
-	Background   color.Color
-	displayColor color.Color
+	Background   Color
+	displayColor Color
 	Fill         bool
-	ui.MouseDispatch
 }
 
 func NewLineChart(parent ui.Drawer, name string, mdl LineChartModeler) *LineChart {
 	self := &LineChart{
-		parent,
-		name,
+		widget.NewWidget(parent, name),
 		mdl,
 		Title{Model: mdl, FontSize: 17},
-		3,
-		ui.Colors[ui.COLOR_DATA_BACKGROUND],
-		ui.Colors[ui.COLOR_DATA_BACKGROUND],
+		Palette[CHART_BACKGROUND],
+		Palette[CHART_BACKGROUND],
 		true,
-		ui.NewMouseDispatch(),
 	}
 
 	return self
 }
 
 func (self *LineChart) Draw(x, y, w, h float64, ctx vg.Context) {
-	ui.DrawDefaultWidget(x, y, w, h, ctx)
+	ui.DrawDefaultWidget(x, y, w, h, Palette[CHART_BACKGROUND], ctx)
 	// th := self.Title.draw(x, y, w, h, ctx)
 	ctx.BeginPath()
 	ctx.Fill()
@@ -114,7 +109,7 @@ func (self *LineChart) drawSeries(x, y, w, h float64, ctx vg.Context) {
 	horIncr := w / (count - 1)
 	vratio := (h - 1) / max
 	for _, s := range self.Model.Series() {
-		c1 := ui.CloneColor(s.Color)
+		c1 := CloneColor(s.Color)
 		c1.A = 150
 		ctx.StrokeColor(c1)
 		ctx.StrokeWidth(s.StrokeWidth)
@@ -131,7 +126,7 @@ func (self *LineChart) drawSeries(x, y, w, h float64, ctx vg.Context) {
 		if self.Fill {
 			ctx.BeginPath()
 			// ctx.MoveTo(x, baseline)
-			c2 := ui.CloneColor(s.Color)
+			c2 := CloneColor(s.Color)
 			c2.A = 200
 			ctx.FillColor(c2)
 			for i, f := range s.Data {

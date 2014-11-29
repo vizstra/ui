@@ -106,7 +106,7 @@ func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
 func (self *Table) Draw(x, y, w, h float64, ctx vg.Context) {
 	for _, child := range self.children {
 		r := self.bounds(child)
-		child.drawer.Draw(r.X, r.Y, r.W, r.H, ctx)
+		child.drawer.Draw(r.X+x, r.Y+y, r.W, r.H, ctx)
 	}
 }
 
@@ -141,7 +141,7 @@ func (self *Table) bounds(child *cell) ui.Rectangle {
 // configRouter will forward events from the parent
 // through to the attached handlers.
 func (self *Table) configRouter(parent ui.Drawer) {
-	var inside bool
+	// var inside bool
 	var mx, my float64
 
 	if p, ok := parent.(ui.MousePositionDispatcher); ok {
@@ -173,10 +173,12 @@ func (self *Table) configRouter(parent ui.Drawer) {
 
 	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
 		p.AddMouseEnterCB(func(in bool) {
-			if !in {
-				inside = in
-				self.DispatchMouseEnter(inside)
+			for _, cell := range self.children {
+				if cell.mouseInside {
+					cell.drawer.DispatchMouseEnter(in)
+				}
 			}
+			self.DispatchMouseEnter(in)
 		})
 	}
 

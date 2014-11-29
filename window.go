@@ -3,6 +3,7 @@ package ui
 import (
 	glfw "github.com/go-gl/glfw3"
 	gl "github.com/vizstra/opengl/gl43"
+	"github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
 	"log"
 	"runtime"
@@ -87,7 +88,9 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 	fbw, fbh := self.FramebufferSize()
 
 	// Calculate pixel ration for hi-dpi devices.
-	gl.ClearColor(.87, .87, .87, 0)
+	bg := color.Palette[color.Gray13]
+
+	gl.ClearColor(gl.Float(bg.R), gl.Float(bg.G), gl.Float(bg.B), gl.Float(bg.A))
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 
 	//Do OpenGL stuff

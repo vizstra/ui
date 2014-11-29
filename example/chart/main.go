@@ -7,11 +7,12 @@ import (
 
 	"github.com/vizstra/ui"
 	"github.com/vizstra/ui/chart"
+	"github.com/vizstra/ui/layout"
 )
 
 func main() {
 	window := ui.NewWindow("", "Chart Example", 500, 300, 1570, 60)
-	fill := ui.NewFill(window)
+	fill := layout.NewFill(window)
 	fill.SetMargin(ui.Margin{15, 15, 15, 15})
 	s := make([]chart.Series, 3)
 	s[0] = chart.Series{[]float64{1, 10, 3, 2, 6, 60, 30, 25, 26, 100, 90, 40, 600, 700, 800, 90}, color.RGBA{200, 100, 100, 255}, 1}
