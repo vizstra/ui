@@ -8,15 +8,16 @@ Vistra UI is an experimental OpenGL based GUI library for the Go programming lan
 - [ ] List
 - [ ] Radio
 - [ ] Check
-- [ ] Progress Bar
+- [x] Progress Bar
 - [ ] Image Button
 - [ ] Tree
 - [ ] Table
-- [ ] Line Chart
+- [x] Line Chart
 - [ ] Pie Chart
 
 ## Layouts
 - [x] Fill
+- [x] Table
 - [ ] Grid
 
 
