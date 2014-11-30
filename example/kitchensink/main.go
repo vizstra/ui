@@ -6,44 +6,56 @@ import (
 	"github.com/vizstra/ui/color"
 	"github.com/vizstra/ui/layout"
 	"github.com/vizstra/ui/widget"
+	"math/rand"
+	"time"
 )
 
 func main() {
-	window := ui.NewWindow("", "Vizstra Kitchen Sink", 1570, 60, 350, 350)
+	window := ui.NewWindow("", "Vizstra Kitchen Sink", 1570, 60, 450, 450)
 
 	fill := layout.NewFill(window)
-	fill.SetMargin(ui.Margin{10, 10, 10, 10})
+	fill.SetMargin(ui.Margin{3, 3, 3, 3})
 	table := layout.NewTable(fill)
 	fill.SetChild(table)
 
-	table.SetDefaultCellDimensions(75, 75)
-	table.SetCellMargin(ui.Margin{3, 3, 3, 3})
+	table.SetDefaultCellDimensions(50, 50)
+	table.SetCellMargin(ui.Margin{2, 2, 2, 2})
 
-	b1 := widget.NewImageButton(table, "", "Click Here!")
+	b1 := widget.NewImageButton(table, "none", "Click Here!")
 	b1.HoverBackground = color.RGBA(10, 10, 10, 50)
 	b1.SetImagePath("src/github.com/vizstra/ui/res/img/b.png")
 	b1.SetHoverImagePath("src/github.com/vizstra/ui/res/img/a.png")
-	table.AddCell(b1, 0, 0)
+	table.AddMultiCell(b1, 0, 0, 2, 1)
 
-	b2 := widget.NewImageButton(table, "", "Click Here!")
+	b2 := widget.NewImageButton(table, "none", "Click Here!")
 	b2.HoverBackground = color.RGBA(10, 10, 10, 50)
 	b2.SetImagePath("src/github.com/vizstra/ui/res/img/candy-apple-icon.png")
-	table.AddCell(b2, 1, 0)
+	table.AddMultiCell(b2, 2, 0, 2, 1)
 
-	button := widget.NewButton(table, "", "Normal Button")
-	table.AddMultiCell(button, 2, 0, 2, 1)
+	button := widget.NewButton(table, "none", "Normal Button")
+	table.AddMultiCell(button, 4, 0, 3, 1)
 
 	table2 := layout.NewTable(table)
-	table2.SetDefaultCellDimensions(75, 30)
-	table2.SetCellMargin(ui.Margin{1, 1, 1, 1})
-	table.AddMultiCell(table2, 0, 1, 4, 1)
+	table2.SetDefaultCellDimensions(30, 30)
+	table.AddMultiCell(table2, 0, 1, 0, 0)
+
+	activity := widget.NewActivityBar(table, "", 100.0, []float64{90, 80, 10})
+	go func() {
+		for {
+			activity.Data = append(activity.Data, rand.Float64()*100)
+			time.Sleep(3 * time.Second)
+		}
+	}()
+
+	activity.Foreground = color.Palette[color.Purple2]
+	table.AddMultiCell(activity, 0, 5, 4, 1)
 
 	pb := widget.NewProgressBar(table2, "", 100)
 	pb.HoverBackground = color.RGBA(10, 10, 10, 50)
 	pb.Value = 70
 	table2.AddMultiCell(pb, 0, 1, 4, 1)
 
-	table.AddMultiCell(BuildChart(table), 0, 2, 4, 2)
+	table.AddMultiCell(BuildChart(table), 0, 3, 4, 2)
 	window.SetChild(fill)
 	end := window.Start()
 	<-end
