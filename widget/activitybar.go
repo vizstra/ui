@@ -2,14 +2,17 @@ package widget
 
 import (
 	"github.com/vizstra/ui"
-	// "github.com/vizstra/ui/color"
+	"github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
+	"math"
+	"time"
 )
 
 type ActivityBar struct {
 	Widget
-	maxValue float64
+	MaxValue float64
 	Data     []float64
+	tween    *color.Tween
 }
 
 // NewActivityBar returns an ActivityBar widget.
@@ -21,22 +24,38 @@ func NewActivityBar(parent ui.Drawer, name string, maxValue float64, data []floa
 		NewWidget(parent, name),
 		maxValue,
 		data,
+		color.NewTween(color.Palette[color.Gray13], color.Palette[color.Red1], 250*time.Millisecond),
 	}
+
+	self.AddMouseEnterCB(func(b bool) {
+		if b {
+			self.tween = color.NewTween(color.Palette[color.Gray13], color.Palette[color.Red1], 250*time.Millisecond)
+			self.tween.Start()
+		} else {
+			c := self.tween.Color()
+			self.tween = color.NewTween(c, color.Palette[color.Gray13], 250*time.Millisecond)
+			self.tween.Start()
+		}
+	})
 
 	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
 		barw := 5.0 // width of the bar
-		x += 1
-		w -= 2 + barw
-		c := self.Foreground
+		sepw := 1.0
+		totalw := (barw + sepw)
+		leftover := w - (math.Floor(w/totalw) * totalw)
+		x += leftover / 2
+		w -= 2 + totalw
+		c := self.tween.Color()
+
 		l := float64(len(self.Data))
 		if l == 0 {
 			return
 		}
 
-		maxcount := w / barw
+		maxcount := w / totalw
 		s := 0
 		if l > maxcount {
-			s = int(l - maxcount)
+			s = int(l - 1 - maxcount)
 		}
 
 		iy := y + h
@@ -44,13 +63,15 @@ func NewActivityBar(parent ui.Drawer, name string, maxValue float64, data []floa
 		for i := s; i < len(self.Data); i++ {
 			v := self.Data[i]
 			ctx.BeginPath()
-			ix := float64(int(x + (float64(i-s) * barw)))
-			ih := float64(int(iy - (h * (v / maxValue))))
+			ix := math.Floor(x + (float64(i-s) * totalw))
+			ih := math.Floor(iy - (h * (v / self.MaxValue)))
 			ctx.FillColor(c)
-			ctx.MoveTo(ix+1, iy)
-			ctx.LineTo(ix+1, ih)
-			ctx.LineTo(ix+barw, ih)
-			ctx.LineTo(ix+barw, iy)
+			ax := ix + sepw
+			bx := ix + barw
+			ctx.MoveTo(ax, iy)
+			ctx.LineTo(ax, ih)
+			ctx.LineTo(bx, ih)
+			ctx.LineTo(bx, iy)
 			ctx.Fill()
 		}
 	}

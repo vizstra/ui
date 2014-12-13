@@ -2,7 +2,6 @@ package widget
 
 import (
 	"github.com/vizstra/ui"
-	. "github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
 )
 
@@ -18,10 +17,12 @@ func NewButton(parent ui.Drawer, name, text string) *Button {
 	}
 
 	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
+
 		ctx.Scissor(x, y, w, h)
-		ctx.FillColor(DefaultPalette[WIDGET_FOREGROUND])
+		ctx.FillColor(self.Foreground)
 		ctx.TextAlign(vg.ALIGN_CENTER | vg.ALIGN_MIDDLE)
-		ctx.FontSize(17)
+
+		ctx.SetFontSize(25)
 		ctx.FindFont(vg.FONT_DEFAULT)
 		ctx.WrappedText(x, y+h/2, w, self.Text)
 		ctx.ResetScissor()

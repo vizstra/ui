@@ -35,10 +35,12 @@ func (f *Fill) attach(parent ui.Drawer) {
 	inside := false
 	if p, ok := parent.(ui.MousePositionDispatcher); ok {
 		p.AddMousePositionCB(func(x, y float64) {
-			if x > f.Rectangle.X+f.Margin.Left &&
-				y > f.Rectangle.Y+f.Margin.Top &&
-				x < f.Rectangle.X+f.Rectangle.W-f.Margin.Right &&
-				y < f.Rectangle.Y+f.Rectangle.H-f.Margin.Bottom {
+			sx := f.Rectangle.X + f.Margin.Left
+			sy := f.Rectangle.Y + f.Margin.Top
+			if x > sx &&
+				y > sy &&
+				x < sx+f.Rectangle.W-f.Margin.Right &&
+				y < sy+f.Rectangle.H-f.Margin.Bottom {
 				if !inside {
 					inside = true
 					f.DispatchMouseEnter(inside)

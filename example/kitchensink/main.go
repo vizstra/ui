@@ -35,20 +35,25 @@ func main() {
 	button := widget.NewButton(table, "none", "Normal Button")
 	table.AddMultiCell(button, 4, 0, 3, 1)
 
+	text := widget.NewText(table, "")
+	table.AddMultiCell(text, 4, 1, 4, 7)
+
 	table2 := layout.NewTable(table)
+	bg := color.Palette[color.Orange1]
+	table2.Background = &bg
 	table2.SetDefaultCellDimensions(30, 30)
 	table.AddMultiCell(table2, 0, 1, 0, 0)
 
-	activity := widget.NewActivityBar(table, "", 100.0, []float64{90, 80, 10})
+	activity := widget.NewActivityBar(table, "", 100.0, []float64{})
 	go func() {
 		for {
 			activity.Data = append(activity.Data, rand.Float64()*100)
-			time.Sleep(3 * time.Second)
+			time.Sleep(1000 * time.Millisecond)
 		}
 	}()
 
 	activity.Foreground = color.Palette[color.Purple2]
-	table.AddMultiCell(activity, 0, 5, 4, 1)
+	table.AddMultiCell(activity, 0, 5, 8, 1)
 
 	pb := widget.NewProgressBar(table2, "", 100)
 	pb.HoverBackground = color.RGBA(10, 10, 10, 50)

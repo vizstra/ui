@@ -2,6 +2,7 @@ package layout
 
 import (
 	"github.com/vizstra/ui"
+	"github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
 )
 
@@ -21,7 +22,12 @@ const (
 // ways; most notably Table overflows the view space while a Grid
 // does not.
 type Table struct {
-	parent            ui.Drawer
+	parent ui.Drawer
+
+	// last drawn location
+	x, y       float64
+	Background *color.Color
+
 	children          []*cell
 	cellHeights       []float64
 	cellWidths        []float64
@@ -37,6 +43,9 @@ type Table struct {
 func NewTable(parent ui.Drawer) *Table {
 	table := &Table{
 		parent,
+		0,
+		0,
+		nil,
 		make([]*cell, 0),
 		make([]float64, 0),
 		make([]float64, 0),
@@ -104,14 +113,19 @@ func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
 }
 
 func (self *Table) Draw(x, y, w, h float64, ctx vg.Context) {
+	self.x, self.y = x, y
+	if self.Background != nil {
+		ui.DrawDefaultWidget(x, y, w, h, self.Background, ctx)
+	}
+
 	for _, child := range self.children {
 		r := self.bounds(child)
-		child.drawer.Draw(r.X+x, r.Y+y, r.W, r.H, ctx)
+		child.drawer.Draw(r.X, r.Y, r.W, r.H, ctx)
 	}
 }
 
 func (self *Table) bounds(child *cell) ui.Rectangle {
-	x, y, w, h := 0.0, 0.0, 0.0, 0.0
+	x, y, w, h := self.x, self.y, 0.0, 0.0
 	for i := 0; i < child.col+child.w && i < len(self.cellWidths); i++ {
 		if i < child.col {
 			x += self.cellPadding.Left
@@ -119,7 +133,13 @@ func (self *Table) bounds(child *cell) ui.Rectangle {
 			x += self.cellWidths[i]
 		} else {
 			w += self.cellPadding.Right
-			w -= self.cellMargin.Right
+
+			if i == child.col+child.w-1 {
+				w -= self.cellMargin.Right
+			} else {
+				w += self.cellMargin.Left
+			}
+
 			w += self.cellWidths[i]
 		}
 	}
@@ -131,7 +151,11 @@ func (self *Table) bounds(child *cell) ui.Rectangle {
 			y += self.cellHeights[i]
 		} else {
 			h += self.cellPadding.Bottom
-			h -= self.cellMargin.Bottom
+			if i == child.row+child.h-1 {
+				h -= self.cellMargin.Bottom
+			} else {
+				h += self.cellMargin.Top
+			}
 			h += self.cellHeights[i]
 		}
 	}
@@ -150,6 +174,7 @@ func (self *Table) configRouter(parent ui.Drawer) {
 			for _, cell := range self.children {
 				child := cell.drawer
 				inchild := self.bounds(cell).Contains(x, y)
+
 				if !inchild {
 					if c, ok := child.(ui.MouseEnterDispatcher); ok && cell.mouseInside {
 						c.DispatchMouseEnter(false)
@@ -163,7 +188,7 @@ func (self *Table) configRouter(parent ui.Drawer) {
 					cell.mouseInside = true
 				}
 
-				if c, ok := child.(ui.MousePositionDispatcher); ok {
+				if c, ok := child.(ui.MousePositionDispatcher); ok && cell.mouseInside {
 					c.DispatchMousePosition(x, y)
 				}
 			}

@@ -1,13 +1,17 @@
 package ui
 
 import (
+	"fmt"
 	glfw "github.com/go-gl/glfw3"
 	gl "github.com/vizstra/opengl/gl43"
 	"github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
 	"log"
 	"runtime"
+	"time"
 )
+
+var debug bool = false
 
 var RR gl.Float = 0.0
 
@@ -22,6 +26,8 @@ type Window struct {
 	MouseDispatch
 }
 
+// NewWindow returns a new Window. The returned Window
+// will init opengl when its Start function is called.
 func NewWindow(name, title string, x, y, w, h int) *Window {
 	glfw.SetErrorCallback(errorCallback)
 
@@ -110,6 +116,7 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 	// gl.Rotatef(1, 0, 0, 1)
 	///////////////////////////
 
+	now := time.Now()
 	// 2D Display
 	r := float64(fbw) / float64(w)
 	gl.Viewport(0, 0, gl.Sizei(fbw), gl.Sizei(fbh))
@@ -119,6 +126,9 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 		self.child.Draw(0.0, 0.0, float64(w), float64(h), ctx)
 		ctx.EndFrame()
 	}
+	if debug {
+		fmt.Println(time.Since(now))
+	}
 }
 
 func (self *Window) Start() chan bool {
@@ -127,6 +137,7 @@ func (self *Window) Start() chan bool {
 		panic(e)
 	}
 
+	now := time.Now()
 	// This is the ever important draw goroutine
 	go func() {
 
@@ -140,7 +151,15 @@ func (self *Window) Start() chan bool {
 			// gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 			w, h := self.Size()
-			self.Draw(0, 0, float64(w), float64(h), ctx)
+
+			if time.Since(now) > 10*time.Second {
+				debug = true
+				self.Draw(0, 0, float64(w), float64(h), ctx)
+				debug = false
+				now = time.Now()
+			} else {
+				self.Draw(0, 0, float64(w), float64(h), ctx)
+			}
 			self.window.SwapBuffers()
 			glfw.PollEvents()
 

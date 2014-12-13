@@ -4,6 +4,7 @@ import (
 	"github.com/vizstra/ui"
 	. "github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
+	"math"
 )
 
 type Widget struct {
@@ -29,7 +30,7 @@ func NewWidget(parent ui.Drawer, name string) Widget {
 		ui.NewMouseDispatch(),
 		name,
 		false,
-		3,
+		0,
 		Palette[WIDGET_FOREGROUND],
 		Palette[WIDGET_BACKGROUND],
 		Palette[WIDGET_HOVER_BACKGROUND],
@@ -63,7 +64,13 @@ func (self *Widget) DispatchMouseClick(m ui.MouseButtonState) {
 	self.MouseDispatch.DispatchMouseClick(m)
 }
 
+func (self *Widget) Clamp(x, y float64) (X, Y float64) {
+	return math.Floor(x) + .5, math.Floor(y) + .5
+}
+
 func (self *Widget) Draw(x, y, w, h float64, ctx vg.Context) {
+	x, y = self.Clamp(x, y)
+
 	// draw background
 	c := CloneColor(self.displayColor)
 	bg := ctx.BoxGradient(x, y, w, h/3, h/2, h, c, self.displayColor)
@@ -72,6 +79,8 @@ func (self *Widget) Draw(x, y, w, h float64, ctx vg.Context) {
 	ctx.RoundedRect(x, y, w, h, self.CornerRadius)
 	ctx.FillPaint(bg)
 	ctx.Fill()
+	ctx.StrokeColor(self.displayColor.Lighten(-0.25))
+	ctx.Stroke()
 
 	if self.DrawCB != nil {
 		self.DrawCB(x, y, w, h, ctx)
