@@ -116,7 +116,7 @@ func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
 func (self *Table) Draw(x, y, w, h float64, ctx vg.Context) {
 	self.x, self.y = x, y
 	if self.Background != nil {
-		ui.DrawDefaultWidget(x, y, w, h, self.Background, ctx)
+		ui.DrawDefaultElement(x, y, w, h, self.Background, ctx)
 	}
 
 	for _, child := range self.children {

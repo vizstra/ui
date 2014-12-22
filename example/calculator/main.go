@@ -29,7 +29,7 @@ func main() {
 	fill.SetChild(table)
 	window.SetChild(fill)
 
-	makebutton := func(text string, c, r, w, h int, cb func(ui.MouseButtonState)) *widget.Button {
+	makebutton := func(text string, c, r, w, h int, cb func(ui.MouseButtonState)) *button.Button {
 		b := button.NewButton(table, text, text)
 		b.AddMouseClickCB(cb)
 		table.AddMultiCell(b, c, r, w, h)
@@ -158,13 +158,13 @@ func main() {
 }
 
 type bartext struct {
-	widget.Widget
+	ui.Element
 	Text string
 }
 
 func NewBartext(parent ui.Drawer, name, text string) *bartext {
 	self := &bartext{
-		widget.NewWidget(parent, name),
+		ui.NewElement(parent, name),
 		text,
 	}
 

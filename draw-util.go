@@ -5,7 +5,7 @@ import (
 	"image/color"
 )
 
-func DrawDefaultWidget(x, y, w, h float64, bg color.Color, ctx vg.Context) {
+func DrawDefaultElement(x, y, w, h float64, bg color.Color, ctx vg.Context) {
 
 	// Shadow
 	ctx.BeginPath()
