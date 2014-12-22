@@ -33,7 +33,7 @@ func (self *Title) draw(x, y, w, h float64, ctx vg.Context) float64 {
 
 		ctx.FillColor(color.RGBA{255, 251, 251, 255})
 		ctx.TextAlign(vg.ALIGN_LEFT | vg.ALIGN_MIDDLE)
-		ctx.FontSize(self.FontSize + 3)
+		ctx.SetFontSize(self.FontSize + 3)
 		ctx.FindFont(vg.FONT_DEFAULT)
 		ctx.WrappedText(x+10, y+self.FontSize, w, name)
 

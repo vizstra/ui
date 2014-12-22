@@ -94,7 +94,7 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 	fbw, fbh := self.FramebufferSize()
 
 	// Calculate pixel ration for hi-dpi devices.
-	bg := color.Palette[color.Gray13]
+	bg := color.Gray13
 
 	gl.ClearColor(gl.Float(bg.R), gl.Float(bg.G), gl.Float(bg.B), gl.Float(bg.A))
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
@@ -118,11 +118,11 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 
 	now := time.Now()
 	// 2D Display
-	r := float64(fbw) / float64(w)
+	// r := float64(fbw) / float64(w)
 	gl.Viewport(0, 0, gl.Sizei(fbw), gl.Sizei(fbh))
 
 	if self.child != nil {
-		ctx.BeginFrame(int(w), int(h), r)
+		ctx.BeginFrame(int(w), int(h), 1.0)
 		self.child.Draw(0.0, 0.0, float64(w), float64(h), ctx)
 		ctx.EndFrame()
 	}
@@ -152,7 +152,7 @@ func (self *Window) Start() chan bool {
 
 			w, h := self.Size()
 
-			if time.Since(now) > 10*time.Second {
+			if time.Since(now) > 2*time.Second {
 				debug = true
 				self.Draw(0, 0, float64(w), float64(h), ctx)
 				debug = false

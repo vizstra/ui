@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/vizstra/ui"
+	"github.com/vizstra/ui/button"
 	"github.com/vizstra/ui/chart"
 	"github.com/vizstra/ui/color"
 	"github.com/vizstra/ui/layout"
-	"github.com/vizstra/ui/widget"
+	"github.com/vizstra/ui/text"
 	"math/rand"
 	"time"
 )
@@ -21,30 +22,30 @@ func main() {
 	table.SetDefaultCellDimensions(50, 50)
 	table.SetCellMargin(ui.Margin{2, 2, 2, 2})
 
-	b1 := widget.NewImageButton(table, "none", "Click Here!")
+	b1 := button.NewImageButton(table, "none", "Click Here!")
 	b1.HoverBackground = color.RGBA(10, 10, 10, 50)
 	b1.SetImagePath("src/github.com/vizstra/ui/res/img/b.png")
 	b1.SetHoverImagePath("src/github.com/vizstra/ui/res/img/a.png")
 	table.AddMultiCell(b1, 0, 0, 2, 1)
 
-	b2 := widget.NewImageButton(table, "none", "Click Here!")
+	b2 := button.NewImageButton(table, "none", "Click Here!")
 	b2.HoverBackground = color.RGBA(10, 10, 10, 50)
 	b2.SetImagePath("src/github.com/vizstra/ui/res/img/candy-apple-icon.png")
 	table.AddMultiCell(b2, 2, 0, 2, 1)
 
-	button := widget.NewButton(table, "none", "Normal Button")
-	table.AddMultiCell(button, 4, 0, 3, 1)
+	b := button.NewButton(table, "none", "Normal Button")
+	table.AddMultiCell(b, 4, 0, 3, 1)
 
-	text := widget.NewText(table, "")
+	text := text.New(table, "", "This is a test")
 	table.AddMultiCell(text, 4, 1, 4, 7)
 
 	table2 := layout.NewTable(table)
-	bg := color.Palette[color.Orange1]
+	bg := color.Orange1
 	table2.Background = &bg
 	table2.SetDefaultCellDimensions(30, 30)
 	table.AddMultiCell(table2, 0, 1, 0, 0)
 
-	activity := widget.NewActivityBar(table, "", 100.0, []float64{})
+	activity := button.NewActivityBar(table, "", 100.0, []float64{})
 	go func() {
 		for {
 			activity.Data = append(activity.Data, rand.Float64()*100)
@@ -52,10 +53,10 @@ func main() {
 		}
 	}()
 
-	activity.Foreground = color.Palette[color.Purple2]
-	table.AddMultiCell(activity, 0, 5, 8, 1)
+	activity.Foreground = color.Purple2
+	table.AddMultiCell(activity, 0, 5, 4, 1)
 
-	pb := widget.NewProgressBar(table2, "", 100)
+	pb := button.NewProgressBar(table2, "", 100)
 	pb.HoverBackground = color.RGBA(10, 10, 10, 50)
 	pb.Value = 70
 	table2.AddMultiCell(pb, 0, 1, 4, 1)

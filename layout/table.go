@@ -40,6 +40,7 @@ type Table struct {
 	ui.MouseDispatch
 }
 
+// NewTable builds a default Table.
 func NewTable(parent ui.Drawer) *Table {
 	table := &Table{
 		parent,
@@ -58,7 +59,7 @@ func NewTable(parent ui.Drawer) *Table {
 		ui.NewMouseDispatch(),
 	}
 
-	table.configRouter(parent)
+	table.route(parent)
 	return table
 }
 
@@ -162,9 +163,9 @@ func (self *Table) bounds(child *cell) ui.Rectangle {
 	return ui.Rectangle{x, y, w, h}
 }
 
-// configRouter will forward events from the parent
+// route will forward events from the parent
 // through to the attached handlers.
-func (self *Table) configRouter(parent ui.Drawer) {
+func (self *Table) route(parent ui.Drawer) {
 	// var inside bool
 	var mx, my float64
 

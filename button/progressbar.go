@@ -1,4 +1,4 @@
-package widget
+package button
 
 import (
 	"github.com/vizstra/ui"
@@ -7,19 +7,19 @@ import (
 )
 
 type ProgressBar struct {
-	Widget
+	ui.Element
 	Value float64
 	Max   float64
 }
 
 func NewProgressBar(parent ui.Drawer, name string, max float64) *ProgressBar {
 	self := &ProgressBar{
-		NewWidget(parent, name),
+		ui.NewElement(parent, name),
 		0,
 		max,
 	}
 
-	self.Widget.ClickBackground = Palette[Blue4]
+	self.Element.ClickBackground = Blue4
 
 	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
 		fg := ctx.BoxGradient(x, y, w, h/3, h/2, h, self.ClickBackground, self.ClickBackground)

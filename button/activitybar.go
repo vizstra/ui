@@ -1,4 +1,4 @@
-package widget
+package button
 
 import (
 	"github.com/vizstra/ui"
@@ -9,7 +9,7 @@ import (
 )
 
 type ActivityBar struct {
-	Widget
+	ui.Element
 	MaxValue float64
 	Data     []float64
 	tween    *color.Tween
@@ -21,19 +21,19 @@ type ActivityBar struct {
 // data:     data slice to use to render
 func NewActivityBar(parent ui.Drawer, name string, maxValue float64, data []float64) *ActivityBar {
 	self := &ActivityBar{
-		NewWidget(parent, name),
+		ui.NewElement(parent, name),
 		maxValue,
 		data,
-		color.NewTween(color.Palette[color.Gray13], color.Palette[color.Red1], 250*time.Millisecond),
+		color.NewTween(color.Gray13, color.Red1, 250*time.Millisecond),
 	}
 
 	self.AddMouseEnterCB(func(b bool) {
 		if b {
-			self.tween = color.NewTween(color.Palette[color.Gray13], color.Palette[color.Red1], 250*time.Millisecond)
+			self.tween = color.NewTween(color.Gray13, color.Red1, 250*time.Millisecond)
 			self.tween.Start()
 		} else {
 			c := self.tween.Color()
-			self.tween = color.NewTween(c, color.Palette[color.Gray13], 250*time.Millisecond)
+			self.tween = color.NewTween(c, color.Gray13, 250*time.Millisecond)
 			self.tween.Start()
 		}
 	})

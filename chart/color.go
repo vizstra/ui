@@ -9,5 +9,5 @@ const (
 )
 
 func init() {
-	DefaultPalette[CHART_BACKGROUND] = DefaultPalette[White]
+	Palette[CHART_BACKGROUND] = White
 }

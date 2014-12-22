@@ -3,7 +3,6 @@ package chart
 import (
 	"github.com/vizstra/ui"
 	. "github.com/vizstra/ui/color"
-	"github.com/vizstra/ui/widget"
 	"github.com/vizstra/vg"
 	"math"
 )
@@ -72,7 +71,7 @@ func (self *Series) MinMax() (min, max float64) {
 }
 
 type LineChart struct {
-	widget.Widget
+	ui.Element
 	Model        LineChartModeler
 	Title        Title
 	Background   Color
@@ -82,7 +81,7 @@ type LineChart struct {
 
 func NewLineChart(parent ui.Drawer, name string, mdl LineChartModeler) *LineChart {
 	self := &LineChart{
-		widget.NewWidget(parent, name),
+		ui.NewElement(parent, name),
 		mdl,
 		Title{Model: mdl, FontSize: 17},
 		Palette[CHART_BACKGROUND],
@@ -94,7 +93,7 @@ func NewLineChart(parent ui.Drawer, name string, mdl LineChartModeler) *LineChar
 }
 
 func (self *LineChart) Draw(x, y, w, h float64, ctx vg.Context) {
-	ui.DrawDefaultWidget(x, y, w, h, Palette[CHART_BACKGROUND], ctx)
+	ui.DrawDefaultElement(x, y, w, h, Palette[CHART_BACKGROUND], ctx)
 	// th := self.Title.draw(x, y, w, h, ctx)
 	ctx.BeginPath()
 	ctx.Fill()

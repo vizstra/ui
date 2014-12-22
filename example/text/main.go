@@ -2,17 +2,21 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/vizstra/ui"
+	"github.com/vizstra/ui/color"
 	"github.com/vizstra/ui/layout"
-	"github.com/vizstra/ui/widget/text"
+	"github.com/vizstra/ui/text"
 )
 
 func main() {
-	window := ui.NewWindow("", "Text Example", 1350, 25, 600, 500)
+	window := ui.NewWindow("", "Text Example", 2650, 25, 1000, 900)
 	fill := layout.NewFill(window)
 	fill.SetMargin(ui.Margin{3, 3, 3, 3})
-	txt := text.New(fill, "")
+	txt := text.New(fill, "",
+		`
+		ajsdkfjasdlkjfhaskdljfhasdlf
+		`)
+	txt.Foreground = color.Blue3
 	txt.AddMousePositionCB(func(x, y float64) {
 		fmt.Println(x, y)
 	})

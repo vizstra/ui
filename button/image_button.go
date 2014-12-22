@@ -1,4 +1,4 @@
-package widget
+package button
 
 import (
 	"github.com/vizstra/ui"
@@ -7,7 +7,7 @@ import (
 )
 
 type ImageButton struct {
-	Widget
+	ui.Element
 	Text           string
 	imagePath      string
 	image          *vg.Image
@@ -18,7 +18,7 @@ type ImageButton struct {
 
 func NewImageButton(parent ui.Drawer, name, text string) *ImageButton {
 	self := &ImageButton{
-		NewWidget(parent, name),
+		ui.NewElement(parent, name),
 		text,
 		"",
 		nil,
@@ -29,7 +29,7 @@ func NewImageButton(parent ui.Drawer, name, text string) *ImageButton {
 
 	// handle alternate images on hover
 	self.AddMouseEnterCB(func(in bool) {
-		if self.inside && self.hoverImage != nil {
+		if self.MouseInside() && self.hoverImage != nil {
 			self.displayImage = self.hoverImage
 		} else if self.image != nil {
 			self.displayImage = self.image
@@ -37,7 +37,7 @@ func NewImageButton(parent ui.Drawer, name, text string) *ImageButton {
 	})
 
 	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
-		ui.DrawDefaultWidget(x, y, w, h, self.displayColor, ctx)
+		ui.DrawDefaultElement(x, y, w, h, self.DisplayColor(), ctx)
 		if self.image == nil {
 			self.image = ctx.NewImage(self.imagePath, 0)
 			self.displayImage = self.image

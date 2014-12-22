@@ -1,4 +1,4 @@
-package widget
+package button
 
 import (
 	"github.com/vizstra/ui"
@@ -6,13 +6,13 @@ import (
 )
 
 type Button struct {
-	Widget
+	ui.Element
 	Text string
 }
 
 func NewButton(parent ui.Drawer, name, text string) *Button {
 	self := &Button{
-		NewWidget(parent, name),
+		ui.NewElement(parent, name),
 		text,
 	}
 
@@ -22,7 +22,7 @@ func NewButton(parent ui.Drawer, name, text string) *Button {
 		ctx.FillColor(self.Foreground)
 		ctx.TextAlign(vg.ALIGN_CENTER | vg.ALIGN_MIDDLE)
 
-		ctx.SetFontSize(25)
+		ctx.SetFontSize(35)
 		ctx.FindFont(vg.FONT_DEFAULT)
 		ctx.WrappedText(x, y+h/2, w, self.Text)
 		ctx.ResetScissor()
