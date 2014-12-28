@@ -5,18 +5,17 @@ import (
 	"github.com/vizstra/ui"
 	. "github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
-	"runtime"
 	"strings"
 )
 
-type Format vg.Align
+type Alignment vg.Align
 
 const (
-	LEFT    Format = Format(vg.ALIGN_LEFT)
-	RIGHT   Format = Format(vg.ALIGN_RIGHT)
-	CENTER  Format = Format(vg.ALIGN_CENTER)
-	JUSTIFY Format = 1 << 7
-	NOWRAP  Format = 1 << 8
+	LEFT    Alignment = Alignment(vg.ALIGN_LEFT)
+	RIGHT   Alignment = Alignment(vg.ALIGN_RIGHT)
+	CENTER  Alignment = Alignment(vg.ALIGN_CENTER)
+	JUSTIFY Alignment = 1 << 7
+	NOWRAP  Alignment = 1 << 8
 )
 
 type Text struct {
@@ -25,7 +24,7 @@ type Text struct {
 	tokens      []string
 	font        string
 	fontSize    float64
-	format      Format
+	alignment   Alignment
 	lastContext *vg.Context
 	sizes       []*ui.Size
 }
@@ -38,7 +37,7 @@ func New(parent ui.Drawer, name, text string) *Text {
 		tokens,
 		vg.FONT_DEFAULT,
 		22,
-		RIGHT,
+		NOWRAP,
 		nil,
 		make([]*ui.Size, len(tokens)),
 	}
@@ -49,98 +48,100 @@ func New(parent ui.Drawer, name, text string) *Text {
 }
 
 func (self *Text) Draw(x, y, w, h float64, ctx vg.Context) {
+	self.lastContext = &ctx
 	ctx.Scissor(x, y, w, h)
-
 	ctx.BeginPath()
 	ctx.RoundedRect(x, y, w, h, self.CornerRadius)
 	ctx.FillColor(self.Background)
 	ctx.Fill()
-
 	ctx.FillColor(self.Foreground)
-
-	self.lastContext = &ctx
 	self.forEachDrawnToken(x, y, w, h,
-		func(i int, x, y, w, h float64, ctx *vg.Context) {
+		func(i int, x, y float64, size *ui.Size, ctx *vg.Context) {
 			ctx.Text(x, y, self.tokens[i])
 		})
 	ctx.ResetScissor()
 }
 
 // type alias for DRY purposes
-type tokenIterCB func(i int, x, y, xmax, ymax float64, ctx *vg.Context)
+type tokenIterCB func(i int, x, y float64, size *ui.Size, ctx *vg.Context)
 
 func (self *Text) forEachDrawnToken(x, y, w, h float64, f tokenIterCB) {
-	switch self.format {
-	case RIGHT:
-		self.iterRight(x, y, w, h, f)
-	case CENTER:
-	case JUSTIFY:
-	default:
-		self.iterLeft(x, y, w, h, f)
-	}
-}
 
-func (self *Text) iterLeft(x, y, w, h float64, f tokenIterCB) {
 	ctx := self.lastContext
 	ctx.SetFontPtSize(self.fontSize)
+
 	_, _, lineh := ctx.TextMetrics()
-	tx, ty := x, y+lineh
+	by := y + lineh
 	spaceWidth := self.spaceWidth(ctx)
 	farEdge := x + w
-	for i, _ := range self.tokens {
-		size := self.tokenSize(i, ctx)
-		if tx+size.W > farEdge {
-			tx = x
-			ty += lineh
-		}
+	linewidth := 0.0
+	bottom := y + h + lineh
 
-		if ty > y+h+lineh {
-			break
-		}
+	for a, b := 0, 0; a < len(self.tokens) && by < bottom; {
 
-		f(i, tx, ty, size.W, size.H, ctx)
-		tx += size.W + spaceWidth
-	}
-}
+		for b < len(self.tokens) {
+			size := self.tokenSize(b, ctx)
+			width := size.W + spaceWidth
 
-func (self *Text) iterRight(x, y, w, h float64, f tokenIterCB) {
-	ctx := self.lastContext
-	ctx.SetFontPtSize(self.fontSize)
-	_, _, lineh := ctx.TextMetrics()
-	lx, ly := x, y+lineh
-	spaceWidth := self.spaceWidth(ctx)
-	farEdge := x + w
-	follower, tx, ty := 0, lx, ly
-	runtime.Breakpoint()
-	for i, _ := range self.tokens {
-		size := self.tokenSize(i, ctx)
-
-		if lx+size.W > farEdge {
-			tx = (w - lx)
-			ty = ly
-			for ; follower < i; follower++ {
-				size = self.sizes[follower]
-				f(follower, tx, ty, size.W, size.H, ctx)
-				tx += size.W + spaceWidth
+			if width+linewidth > farEdge {
+				break
 			}
-			lx = x
-			ly += lineh
+			linewidth += width
+			b++
 		}
 
-		if ly > y+h+lineh {
+		spread := 0.0
+		ax := x
+		switch self.alignment {
+		case RIGHT:
+			ax = x + farEdge - linewidth
+		case CENTER:
+			ax = (x + farEdge - linewidth) / 2
+		case JUSTIFY:
+			if b != len(self.tokens) {
+				spread = (x + farEdge - linewidth) / float64(b-a-1)
+			}
+		}
+
+		for ; a < b; a++ {
+			size := self.sizes[a]
+			f(a, ax, by, size, ctx)
+			ax += size.W + spaceWidth + spread
+		}
+
+		if self.alignment == NOWRAP {
+			size := self.sizes[a]
+			f(a, ax, by, size, ctx)
 			break
 		}
 
-		lx += size.W + spaceWidth
+		linewidth = 0
+		by += lineh
 	}
 }
 
-func drawBounds(xmin, ymin, xmax, ymax float64, ctx vg.Context) {
-	ctx.BeginPath()
-	ctx.FillColor(Green1)
-	ctx.RoundedRect(xmin, ymin, xmax-xmin, ymax-ymin, 3)
-	ctx.Fill()
-}
+// func (self *Text) iterLeft(x, y, w, h float64, f tokenIterCB) {
+// 	ctx := self.lastContext
+// 	ctx.SetFontPtSize(self.fontSize)
+// 	_, _, lineh := ctx.TextMetrics()
+// 	tx, ty := x, y+lineh
+// 	spaceWidth := self.spaceWidth(ctx)
+// 	farEdge := x + w
+// 	for i, _ := range self.tokens {
+// 		size := self.tokenSize(i, ctx)
+// 		if tx+size.W > farEdge {
+// 			tx = x
+// 			ty += lineh
+// 		}
+
+// 		if ty > y+h+lineh {
+// 			break
+// 		}
+
+// 		f(i, tx, ty, size, ctx)
+// 		tx += size.W + spaceWidth
+// 	}
+// }
 
 // tokenSize retrieves the metrics from the internal cache, sizes.
 // It is expensive to calculate the token sizes each frame and the

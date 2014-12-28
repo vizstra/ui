@@ -14,7 +14,7 @@ func main() {
 	fill.SetMargin(ui.Margin{3, 3, 3, 3})
 	txt := text.New(fill, "",
 		`
-Generally
+Generally, open source refers to a computer program in which the source code is available to the general public for use and/or modification from its original design. Open-source code is typically a collaborative effort where programmers improve upon the source code and share the changes within the community so that other members can help improve it further.
 		`)
 	txt.Foreground = color.Gray13
 	txt.AddMousePositionCB(func(x, y float64) {
