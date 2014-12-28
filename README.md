@@ -9,6 +9,25 @@ go get github.com/vizstra/ui
 
 Here is a simple example of using 
 ```Go
+package main
+import (
+  "github.com/vizstra/ui"
+  "github.com/vizstra/ui/button"
+  "github.com/vizstra/ui/layout"
+)
+
+func main() {
+  window := ui.NewWindow("", "Button Example", 240, 60, 1570, 60)
+  fill := layout.NewFill(window)
+  fill.SetMargin(ui.Margin{10, 10, 10, 10})
+  b := button.NewButton(fill, "", "Click Here!")
+  b.AddMousePositionCB(func(x, y float64) { })
+  b.AddMouseClickCB(func(m ui.MouseButtonState) { })
+  fill.SetChild(b)
+  window.SetChild(fill)
+  end := window.Start()
+  <-end
+}
 ```
 
 ######Developer Protip
