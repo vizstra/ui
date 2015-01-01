@@ -1,6 +1,16 @@
-Vistra UI is an experimental OpenGL based GUI library for the Go programming language. It a personal project in the and should be viewed as such.  Although it is in the earliest stages of development, feel free to use it and submit pull requests as bugs are found or features created.  Areas I would like help with are a charting library, font fallback, glyph caching (maybe), testing framework, and various other widgets (see [Semantic UI](http://semantic-ui.com/)). 
+Vistra UI is an experimental OpenGL based GUI library for the Go programming language. It a personal project and should be viewed as such.  Although it is in the earliest stages of development, feel free to use it and submit pull requests as bugs are found or features created.  Areas I would like help with are:
 
-I chose OpenGL for rendering to have a less event driven UI experience and a simple frame based architecture.  There is a 3D render pass, followed by a vector graphics drawing pass.  Each frame renders itself as often as possible in a separate goroutine which is kicked off by the Window.Start() function.  You can currently set mouse event callbacks or request a mouse event channel.  Keyboard input will follow after the text rendering system is built.
+- testing
+- documentation
+- architecture
+- charts and data visualizations
+- font fallbacks for unicode
+- optimization
+- nanovg porting?
+- automated testing framework
+- other ui elements (see [Semantic UI](http://semantic-ui.com/)) for ideas
+
+I chose OpenGL (NanoVG) for rendering to have a less event driven UI experience and a simple frame based architecture.  There is a 3D render pass, followed by a vector graphics drawing pass.  Each frame renders itself as often as possible in a separate goroutine which is kicked off by the Window.Start() function.  You can currently set mouse event callbacks or request a mouse event channel.  Keyboard input will follow after the text rendering system is built.
 
 To get the library for use:
 ```
@@ -30,30 +40,20 @@ func main() {
 }
 ```
 
-######Developer Protip
+#####Developer Protip
 Use rerun to automatically rebuild and test UI changes; I do.
 ```
 go install https://github.com/skelterjohn/rerun
 ```
 
-#### Current UI Goals
-- [x] Button
-- [ ] Text (This is a very large area currently being worked)
-- [ ] Label
-- [ ] Scrollbar
-- [ ] List
-- [ ] Radio
-- [ ] Check
-- [x] Progress Bar
-- [ ] Image Button
-- [ ] Tree
-- [ ] Table
-- [x] Line Chart
-- [ ] Pie Chart
+#####Screenshots
+A couple notes about these screenshots, I am working on a hi resolution 4K monitor and didn't bother to look at these images on other platforms or modify them in anyway.  Theming is not yet supported, and I have not begun to explore that aspect of the architecture yet, so I wouldn't say things are in their final form:
 
-###### Layouts
-- [x] Fill
-- [x] Table
-- [ ] Grid
+###### Text Rendering
+<img src=https://raw.githubusercontent.com/vizstra/ui/master/res/img/screenshots/text.png>
 
+###### Buttons
+<img src=https://raw.githubusercontent.com/vizstra/ui/master/res/img/screenshots/calculator.png>
 
+###### Charts
+<img src=https://raw.githubusercontent.com/vizstra/ui/master/res/img/screenshots/chart1.png>

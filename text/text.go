@@ -20,6 +20,7 @@ const (
 	NOWRAP  Alignment = 1 << 8
 )
 
+// Text serves as the basic text rendering element for most UI components.
 type Text struct {
 	ui.Element
 	ui.Scroll
@@ -59,18 +60,6 @@ func New(parent ui.Drawer, name, text string) *Text {
 	self.Foreground = Gray10
 	return self
 }
-
-// func (self *Text) SetYOffset(offset float64) {
-// 	self.yoff -= offset * self.lineh
-// 	if self.yoff < 0 {
-// 		self.yoff = 0
-// 	}
-
-// 	// fmt.Println(self.farY)
-// 	// if self.bounds[len(self.bounds)-1] != nil {
-// 	// 	self.yoff = self.farY
-// 	// }
-// }
 
 func (self *Text) Draw(x, y, w, h float64, ctx vg.Context) {
 	self.lastContext = &ctx
