@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const DEBUG = false
+
 type Alignment vg.Align
 
 const (
@@ -20,32 +22,55 @@ const (
 
 type Text struct {
 	ui.Element
+	ui.Scroll
 	text        string
 	tokens      []string
 	font        string
 	fontSize    float64
-	alignment   Alignment
+	Alignment   Alignment
 	lastContext *vg.Context
-	sizes       []*ui.Size
+	bounds      []*ui.Rectangle
 }
 
 func New(parent ui.Drawer, name, text string) *Text {
 	tokens := strings.Fields(text)
 	self := &Text{
 		ui.NewElement(parent, name),
+		ui.NewScroll(),
 		text,
 		tokens,
 		vg.FONT_DEFAULT,
-		22,
-		NOWRAP,
+		21,
+		LEFT,
 		nil,
-		make([]*ui.Size, len(tokens)),
+		make([]*ui.Rectangle, len(tokens)),
 	}
-	self.Background = White
-	self.Foreground = Blue5
 
+	self.AddScrollCB(func(xoff, yoff float64) {
+		vertical := self.YOffset()
+		vertical -= yoff * self.Increment()
+		if vertical < 0 {
+			vertical = 0
+		}
+		self.SetYOffset(vertical)
+	})
+
+	self.Background = White
+	self.Foreground = Gray10
 	return self
 }
+
+// func (self *Text) SetYOffset(offset float64) {
+// 	self.yoff -= offset * self.lineh
+// 	if self.yoff < 0 {
+// 		self.yoff = 0
+// 	}
+
+// 	// fmt.Println(self.farY)
+// 	// if self.bounds[len(self.bounds)-1] != nil {
+// 	// 	self.yoff = self.farY
+// 	// }
+// }
 
 func (self *Text) Draw(x, y, w, h float64, ctx vg.Context) {
 	self.lastContext = &ctx
@@ -56,22 +81,23 @@ func (self *Text) Draw(x, y, w, h float64, ctx vg.Context) {
 	ctx.Fill()
 	ctx.FillColor(self.Foreground)
 	self.forEachDrawnToken(x, y, w, h,
-		func(i int, x, y float64, size *ui.Size, ctx *vg.Context) {
+		func(i int, x, y float64, bounds *ui.Rectangle, ctx *vg.Context) {
 			ctx.Text(x, y, self.tokens[i])
-		})
+		},
+	)
 	ctx.ResetScissor()
 }
 
-// type alias for DRY purposes
-type tokenIterCB func(i int, x, y float64, size *ui.Size, ctx *vg.Context)
-
-func (self *Text) forEachDrawnToken(x, y, w, h float64, f tokenIterCB) {
+func (self *Text) forEachDrawnToken(x, y, w, h float64,
+	f func(i int, x, y float64, bounds *ui.Rectangle, ctx *vg.Context)) {
 
 	ctx := self.lastContext
 	ctx.SetFontPtSize(self.fontSize)
 
 	_, _, lineh := ctx.TextMetrics()
-	by := y + lineh
+	self.SetIncrement(lineh)
+
+	by := y - self.YOffset() + lineh/1.25
 	spaceWidth := self.spaceWidth(ctx)
 	farEdge := x + w
 	linewidth := 0.0
@@ -79,39 +105,44 @@ func (self *Text) forEachDrawnToken(x, y, w, h float64, f tokenIterCB) {
 
 	for a, b := 0, 0; a < len(self.tokens) && by < bottom; {
 
-		for b < len(self.tokens) {
-			size := self.tokenSize(b, ctx)
-			width := size.W + spaceWidth
-
-			if width+linewidth > farEdge {
+		for ; b < len(self.tokens); b++ {
+			bounds := self.tokenBounds(b, ctx)
+			if x+bounds.W+linewidth > farEdge {
 				break
 			}
-			linewidth += width
-			b++
+			linewidth += bounds.W + spaceWidth
 		}
 
-		spread := 0.0
+		justificationSpread := 0.0
 		ax := x
-		switch self.alignment {
+
+		switch self.Alignment {
 		case RIGHT:
-			ax = x + farEdge - linewidth
+			ax = farEdge - linewidth + spaceWidth
 		case CENTER:
-			ax = (x + farEdge - linewidth) / 2
+			ax = (x + farEdge - linewidth + spaceWidth) / 2
 		case JUSTIFY:
 			if b != len(self.tokens) {
-				spread = (x + farEdge - linewidth) / float64(b-a-1)
+				justificationSpread = (w - linewidth + spaceWidth) / float64(b-a-1)
 			}
 		}
 
+		// if a == 0 {
+		// 	fmt.Println(by, self.yoff)
+		// }
+		// if by+self.yoff < 0 || ax+self.xoff < 0 {
+		// 	continue
+		// }
+
 		for ; a < b; a++ {
-			size := self.sizes[a]
-			f(a, ax, by, size, ctx)
-			ax += size.W + spaceWidth + spread
+			bounds := self.bounds[a]
+			f(a, ax, by, bounds, ctx)
+			ax += bounds.W + spaceWidth + justificationSpread
 		}
 
-		if self.alignment == NOWRAP {
-			size := self.sizes[a]
-			f(a, ax, by, size, ctx)
+		if self.Alignment == NOWRAP && a < len(self.tokens) {
+			bounds := self.bounds[a]
+			f(a, ax, by, bounds, ctx)
 			break
 		}
 
@@ -119,29 +150,6 @@ func (self *Text) forEachDrawnToken(x, y, w, h float64, f tokenIterCB) {
 		by += lineh
 	}
 }
-
-// func (self *Text) iterLeft(x, y, w, h float64, f tokenIterCB) {
-// 	ctx := self.lastContext
-// 	ctx.SetFontPtSize(self.fontSize)
-// 	_, _, lineh := ctx.TextMetrics()
-// 	tx, ty := x, y+lineh
-// 	spaceWidth := self.spaceWidth(ctx)
-// 	farEdge := x + w
-// 	for i, _ := range self.tokens {
-// 		size := self.tokenSize(i, ctx)
-// 		if tx+size.W > farEdge {
-// 			tx = x
-// 			ty += lineh
-// 		}
-
-// 		if ty > y+h+lineh {
-// 			break
-// 		}
-
-// 		f(i, tx, ty, size, ctx)
-// 		tx += size.W + spaceWidth
-// 	}
-// }
 
 // tokenSize retrieves the metrics from the internal cache, sizes.
 // It is expensive to calculate the token sizes each frame and the
@@ -152,14 +160,14 @@ func (self *Text) forEachDrawnToken(x, y, w, h float64, f tokenIterCB) {
 //         > echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 //       or
 //         > sudo update-rc.d ondemand disable
-func (self *Text) tokenSize(i int, ctx *vg.Context) *ui.Size {
-	size := self.sizes[i]
-	if size == nil {
-		_, _, w, h := ctx.TextBounds(self.tokens[i], 0, 0)
-		size = &ui.Size{w, h}
-		self.sizes[i] = size
+func (self *Text) tokenBounds(i int, ctx *vg.Context) *ui.Rectangle {
+	bounds := self.bounds[i]
+	if bounds == nil {
+		x, y, w, h := ctx.TextBounds(self.tokens[i], 0, 0)
+		bounds = &ui.Rectangle{x, y, w, h}
+		self.bounds[i] = bounds
 	}
-	return size
+	return bounds
 }
 
 func (self *Text) spaceWidth(ctx *vg.Context) float64 {

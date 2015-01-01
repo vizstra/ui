@@ -38,6 +38,7 @@ type Table struct {
 	ui.KeyDispatch
 	ui.CharDispatch
 	ui.MouseDispatch
+	ui.ScrollDispatch
 }
 
 // NewTable builds a default Table.
@@ -57,6 +58,7 @@ func NewTable(parent ui.Drawer) *Table {
 		ui.NewKeyDispatch(),
 		ui.NewCharDispatch(),
 		ui.NewMouseDispatch(),
+		ui.NewScrollDispatch(),
 	}
 
 	table.route(parent)
@@ -140,7 +142,6 @@ func (self *Table) bounds(child *cell) ui.Rectangle {
 			} else {
 				w += self.cellMargin.Left
 			}
-
 			w += self.cellWidths[i]
 		}
 	}
@@ -200,8 +201,9 @@ func (self *Table) route(parent ui.Drawer) {
 	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
 		p.AddMouseEnterCB(func(in bool) {
 			for _, cell := range self.children {
-				if cell.mouseInside {
-					cell.drawer.DispatchMouseEnter(in)
+				child := cell.drawer
+				if c, ok := child.(ui.MouseEnterDispatcher); ok && cell.mouseInside {
+					c.DispatchMouseEnter(in)
 				}
 			}
 			self.DispatchMouseEnter(in)
@@ -217,6 +219,18 @@ func (self *Table) route(parent ui.Drawer) {
 				}
 			}
 			self.DispatchMouseClick(m)
+		})
+	}
+
+	if p, ok := parent.(ui.ScrollDispatcher); ok {
+		p.AddScrollCB(func(xoff, yoff float64) {
+			for _, cell := range self.children {
+				child := cell.drawer
+				if c, ok := child.(ui.ScrollDispatcher); ok && self.bounds(cell).Contains(mx, my) {
+					c.DispatchScroll(xoff, yoff)
+				}
+			}
+			self.DispatchScroll(xoff, yoff)
 		})
 	}
 }

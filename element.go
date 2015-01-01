@@ -9,6 +9,7 @@ import (
 type Element struct {
 	Parent Drawer
 	MouseDispatch
+	ScrollDispatch
 	Name            string
 	inside          bool
 	CornerRadius    float64
@@ -29,6 +30,7 @@ func NewElement(parent Drawer, name string) Element {
 	return Element{
 		parent,
 		NewMouseDispatch(),
+		NewScrollDispatch(),
 		name,
 		false,
 		0,

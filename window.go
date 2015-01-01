@@ -24,6 +24,7 @@ type Window struct {
 	KeyDispatch
 	CharDispatch
 	MouseDispatch
+	ScrollDispatch
 }
 
 // NewWindow returns a new Window. The returned Window
@@ -46,10 +47,38 @@ func NewWindow(name, title string, x, y, w, h int) *Window {
 		NewKeyDispatch(),
 		NewCharDispatch(),
 		NewMouseDispatch(),
+		NewScrollDispatch(),
 	}
 
 	window.SetPosition(x, y)
 	window.MakeContextCurrent()
+
+	var lastScroll time.Time
+	var yoffTicks, xoffTicks float64
+	var maxScrollTick = 25.0
+	window.SetScrollCallback(func(w *glfw.Window, xoff float64, yoff float64) {
+		if yoff != 0 && time.Since(lastScroll) < 50*time.Millisecond {
+			if yoff > -maxScrollTick || yoff < maxScrollTick {
+				yoffTicks = yoffTicks + yoff
+			}
+		} else {
+			yoffTicks = yoff
+		}
+
+		if xoff != 0 && time.Since(lastScroll) < 100*time.Millisecond {
+			if xoff > -maxScrollTick || xoff < maxScrollTick {
+				xoffTicks = xoffTicks + xoff
+			}
+		} else {
+			xoffTicks = xoff
+		}
+
+		lastScroll = time.Now()
+
+		for h, _ := range win.ScrollHandlers {
+			h.HandleScroll(xoffTicks, yoffTicks)
+		}
+	})
 
 	window.SetKeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 		ke := KeyEvent{Key(key), scancode, Action(action), ModifierKey(mods)}

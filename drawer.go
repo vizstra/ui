@@ -5,6 +5,6 @@ import (
 )
 
 type Drawer interface {
-	MouseDispatcher
+	// MouseDispatcher
 	Draw(x, y, w, h float64, ctx vg.Context)
 }
