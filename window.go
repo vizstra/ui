@@ -16,6 +16,7 @@ var debug bool = false
 var RR gl.Float = 0.0
 
 type Window struct {
+	Rectangle
 	name     string
 	endchan  chan bool
 	window   *glfw.Window
@@ -39,6 +40,7 @@ func NewWindow(name, title string, x, y, w, h int) *Window {
 	}
 
 	win := &Window{
+		NewRectangle(float64(x), float64(y), float64(w), float64(h)),
 		name,
 		make(chan bool),
 		window,
@@ -231,8 +233,8 @@ func (self *Window) SetTitle(title string) {
 	self.window.SetTitle(title)
 }
 
-func (self *Window) SetSize(w, h int) {
-	self.window.SetSize(w, h)
+func (self *Window) SetSize(s Size) {
+	self.window.SetSize(int(s.W), int(s.H))
 }
 
 func (self *Window) Size() (w, h int) {
@@ -243,8 +245,8 @@ func (self *Window) FramebufferSize() (w, h int) {
 	return self.window.GetFramebufferSize()
 }
 
-func (self *Window) SetPosition(x, y int) {
-	self.window.SetPosition(x, y)
+func (self *Window) SetPosition(p Position) {
+	self.window.SetPosition(int(p.X), int(p.Y))
 }
 
 func (self *Window) Position() (x, y int) {

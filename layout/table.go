@@ -117,9 +117,9 @@ func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
 
 func (self *Table) Draw(x, y, w, h float64, ctx vg.Context) {
 	self.x, self.y = x, y
-	if self.Background != nil {
-		ui.DrawDefaultElement(x, y, w, h, self.Background, ctx)
-	}
+	// if self.Background != nil {
+	// 	ui.DrawDefaultElement(x, y, w, h, self.Background, ctx)
+	// }
 
 	for _, child := range self.children {
 		r := self.bounds(child)
@@ -161,7 +161,7 @@ func (self *Table) bounds(child *cell) ui.Rectangle {
 			h += self.cellHeights[i]
 		}
 	}
-	return ui.Rectangle{x, y, w, h}
+	return ui.NewRectangle(x, y, w, h)
 }
 
 // route will forward events from the parent

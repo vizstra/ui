@@ -1,7 +1,7 @@
 package text
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/vizstra/ui"
 	. "github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
@@ -47,6 +47,8 @@ func New(parent ui.Drawer, name, text string) *Text {
 		make([]*ui.Rectangle, len(tokens)),
 	}
 
+	self.CornerRadius = 0
+
 	self.AddScrollCB(func(xoff, yoff float64) {
 		vertical := self.YOffset()
 		vertical -= yoff * self.Increment()
@@ -54,6 +56,15 @@ func New(parent ui.Drawer, name, text string) *Text {
 			vertical = 0
 		}
 		self.SetYOffset(vertical)
+	})
+
+	X, Y := 0.0, 0.0
+	self.AddMousePositionCB(func(x, y float64) {
+		X, Y = x, y
+	})
+
+	self.AddMouseClickCB(func(state ui.MouseButtonState) {
+		fmt.Println(X, Y)
 	})
 
 	self.Background = White
@@ -160,6 +171,6 @@ func (self *Text) tokenBounds(i int, ctx *vg.Context) *ui.Rectangle {
 }
 
 func (self *Text) spaceWidth(ctx *vg.Context) float64 {
-	xmin, _, xmax, _ := ctx.TextBounds("o", 0, 0)
+	xmin, _, xmax, _ := ctx.TextBounds(".", 0, 0)
 	return xmax - xmin
 }

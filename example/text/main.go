@@ -30,6 +30,7 @@ func main() {
 		txt.Alignment = a
 		txt.Foreground = c
 		table.AddMultiCell(txt, col, row, w, h)
+
 	}
 
 	addText(text.LEFT, "Left", color.Gray13, 0, 1, 1, 1)

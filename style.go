@@ -2,9 +2,23 @@ package ui
 
 import ()
 
-/*
- * This is a good example of a data trait
- */
+type Point float64
+type Weight float64
+
+//
+type Fonter interface {
+	SetName(string)
+	Name() string
+	SetWeight(Weight)
+	Weight() Weight
+	SetPoint(Point)
+	Point() Point
+}
+
+type Font struct {
+	Name string
+	Size
+}
 
 type Margin struct {
 	Top, Bottom, Left, Right float64

@@ -10,11 +10,10 @@ type Element struct {
 	Parent Drawer
 	MouseDispatch
 	ScrollDispatch
+	Rectangle
 	Name            string
 	inside          bool
 	CornerRadius    float64
-	Size            Sizer
-	Position        Positioner
 	Foreground      Color
 	Background      Color
 	HoverBackground Color
@@ -31,11 +30,10 @@ func NewElement(parent Drawer, name string) Element {
 		parent,
 		NewMouseDispatch(),
 		NewScrollDispatch(),
+		Rectangle{Position{0, 0}, Size{0, 0}},
 		name,
 		false,
-		0,
-		&Size{0, 0},
-		&Point{0, 0},
+		3,
 		Palette[ELEMENT_FOREGROUND],
 		Palette[ELEMENT_BACKGROUND],
 		Palette[ELEMENT_HOVER_BACKGROUND],
@@ -109,7 +107,7 @@ const (
 
 func init() {
 	Palette[ELEMENT_FOREGROUND] = White
-	Palette[ELEMENT_BACKGROUND] = Gray12
-	Palette[ELEMENT_HOVER_BACKGROUND] = Gray13
+	Palette[ELEMENT_BACKGROUND] = Gray10
+	Palette[ELEMENT_HOVER_BACKGROUND] = Gray6
 	Palette[ELEMENT_CLICK_BACKGROUND] = Gray12
 }
