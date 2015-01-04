@@ -36,8 +36,9 @@ func NewImageButton(parent ui.Drawer, name, text string) *ImageButton {
 		}
 	})
 
-	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
-		ui.DrawDefaultElement(x, y, w, h, self.DisplayColor(), ctx)
+	self.DrawCB = func(ctx vg.Context) {
+		x, y, w, h := self.Bounds()
+		ui.DrawDefaultElement(x, y, w, h, self.ActiveBackground, ctx)
 		if self.image == nil {
 			self.image = ctx.NewImage(self.imagePath, 0)
 			self.displayImage = self.image

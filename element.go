@@ -11,15 +11,16 @@ type Element struct {
 	MouseDispatch
 	ScrollDispatch
 	Rectangle
-	Name            string
-	inside          bool
-	CornerRadius    float64
-	Foreground      Color
-	Background      Color
-	HoverBackground Color
-	ClickBackground Color
-	displayColor    Color
-	DrawCB          func(x, y, w, h float64, ctx vg.Context)
+	Name             string
+	inside           bool
+	CornerRadius     float64
+	BorderWidth      float64
+	Foreground       Color
+	Background       Color
+	HoverBackground  Color
+	ClickBackground  Color
+	ActiveBackground Color
+	DrawCB           func(ctx vg.Context)
 }
 
 // NewElement builds and returns a Element.
@@ -34,6 +35,7 @@ func NewElement(parent Drawer, name string) Element {
 		name,
 		false,
 		3,
+		1,
 		Palette[ELEMENT_FOREGROUND],
 		Palette[ELEMENT_BACKGROUND],
 		Palette[ELEMENT_HOVER_BACKGROUND],
@@ -47,16 +49,19 @@ func (self *Element) MouseInside() bool {
 	return self.inside
 }
 
-func (self *Element) DisplayColor() Color {
-	return self.displayColor
-}
-
 func (self *Element) determineBackground() {
 	if self.inside {
-		self.displayColor = self.HoverBackground
+		self.ActiveBackground = self.HoverBackground
 	} else {
-		self.displayColor = self.Background
+		self.ActiveBackground = self.Background
 	}
+}
+
+func (self *Element) SetCommonBackground(c Color) {
+	self.Background = c
+	self.HoverBackground = c
+	self.ClickBackground = c
+	self.ActiveBackground = c
 }
 
 func (self *Element) DispatchMouseEnter(in bool) {
@@ -69,7 +74,7 @@ func (self *Element) DispatchMouseClick(m MouseButtonState) {
 	if m.MouseButton == MOUSE_BUTTON_LEFT || m.MouseButton == MOUSE_BUTTON_1 {
 		self.determineBackground()
 		if m.Action == PRESS {
-			self.displayColor = self.ClickBackground
+			self.ActiveBackground = self.ClickBackground
 		}
 	}
 	self.MouseDispatch.DispatchMouseClick(m)
@@ -79,22 +84,24 @@ func (self *Element) Clamp(x, y float64) (X, Y float64) {
 	return math.Floor(x) + .5, math.Floor(y) + .5
 }
 
-func (self *Element) Draw(x, y, w, h float64, ctx vg.Context) {
+func (self *Element) Draw(ctx vg.Context) {
+	x, y, w, h := self.Bounds()
 	x, y = self.Clamp(x, y)
 
 	// draw background
-	c := CloneColor(self.displayColor)
-	bg := ctx.BoxGradient(x, y, w, h/3, h/2, h, c, self.displayColor)
+	c := CloneColor(self.ActiveBackground)
+	bg := ctx.BoxGradient(x, y, w, h, h, h, c, c)
 
 	ctx.BeginPath()
 	ctx.RoundedRect(x, y, w, h, self.CornerRadius)
 	ctx.FillPaint(bg)
 	ctx.Fill()
-	ctx.StrokeColor(self.displayColor.Lighten(-0.20))
+	ctx.StrokeWidth(self.BorderWidth)
+	ctx.StrokeColor(c.Lighten(-0.5))
 	ctx.Stroke()
 
 	if self.DrawCB != nil {
-		self.DrawCB(x, y, w, h, ctx)
+		self.DrawCB(ctx)
 	}
 }
 

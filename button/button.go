@@ -16,8 +16,8 @@ func NewButton(parent ui.Drawer, name, text string) *Button {
 		text,
 	}
 
-	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
-
+	self.DrawCB = func(ctx vg.Context) {
+		x, y, w, h := self.Bounds()
 		ctx.Scissor(x, y, w, h)
 		ctx.FillColor(self.Foreground)
 		ctx.TextAlign(vg.ALIGN_CENTER | vg.ALIGN_MIDDLE)

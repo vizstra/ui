@@ -121,7 +121,8 @@ func (self *Window) HandleMouseEnter(b bool) {
 	}
 }
 
-func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
+func (self *Window) Draw(ctx vg.Context) {
+	_, _, w, h := self.Bounds()
 	fbw, fbh := self.FramebufferSize()
 
 	// Calculate pixel ration for hi-dpi devices.
@@ -154,7 +155,8 @@ func (self *Window) Draw(x, y, w, h float64, ctx vg.Context) {
 
 	if self.child != nil {
 		ctx.BeginFrame(int(w), int(h), 1.0)
-		self.child.Draw(0.0, 0.0, float64(w), float64(h), ctx)
+		self.child.SetBounds(0.0, 0.0, float64(w), float64(h))
+		self.child.Draw(ctx)
 		ctx.EndFrame()
 	}
 	if debug {
@@ -182,14 +184,15 @@ func (self *Window) Start() chan bool {
 			// gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 			w, h := self.Size()
+			self.child.SetBounds(0.0, 0.0, float64(w), float64(h))
 
 			if time.Since(now) > 2*time.Second {
 				debug = true
-				self.Draw(0, 0, float64(w), float64(h), ctx)
+				self.Draw(ctx)
 				debug = false
 				now = time.Now()
 			} else {
-				self.Draw(0, 0, float64(w), float64(h), ctx)
+				self.Draw(ctx)
 			}
 			self.window.SwapBuffers()
 			glfw.PollEvents()

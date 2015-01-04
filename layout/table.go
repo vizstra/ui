@@ -22,12 +22,9 @@ const (
 // ways; most notably Table overflows the view space while a Grid
 // does not.
 type Table struct {
-	parent ui.Drawer
-
-	// last drawn location
-	x, y       float64
-	Background *color.Color
-
+	ui.Rectangle
+	parent            ui.Drawer
+	Background        *color.Color
 	children          []*cell
 	cellHeights       []float64
 	cellWidths        []float64
@@ -44,9 +41,8 @@ type Table struct {
 // NewTable builds a default Table.
 func NewTable(parent ui.Drawer) *Table {
 	table := &Table{
+		ui.NewRectangle(0, 0, 0, 0),
 		parent,
-		0,
-		0,
 		nil,
 		make([]*cell, 0),
 		make([]float64, 0),
@@ -115,20 +111,16 @@ func (self *Table) AddMultiCell(child ui.Drawer, col, row, w, h int) error {
 	return nil
 }
 
-func (self *Table) Draw(x, y, w, h float64, ctx vg.Context) {
-	self.x, self.y = x, y
-	// if self.Background != nil {
-	// 	ui.DrawDefaultElement(x, y, w, h, self.Background, ctx)
-	// }
-
+func (self *Table) Draw(ctx vg.Context) {
 	for _, child := range self.children {
 		r := self.bounds(child)
-		child.drawer.Draw(r.X, r.Y, r.W, r.H, ctx)
+		child.drawer.SetRectangle(r)
+		child.drawer.Draw(ctx)
 	}
 }
 
 func (self *Table) bounds(child *cell) ui.Rectangle {
-	x, y, w, h := self.x, self.y, 0.0, 0.0
+	x, y, w, h := self.X, self.Y, 0.0, 0.0
 	for i := 0; i < child.col+child.w && i < len(self.cellWidths); i++ {
 		if i < child.col {
 			x += self.cellPadding.Left
@@ -173,25 +165,18 @@ func (self *Table) route(parent ui.Drawer) {
 	if p, ok := parent.(ui.MousePositionDispatcher); ok {
 		p.AddMousePositionCB(func(x, y float64) {
 			mx, my = x, y
+
 			for _, cell := range self.children {
 				child := cell.drawer
-				inchild := self.bounds(cell).Contains(x, y)
+				inchild := child.Contains(x, y)
 
-				if !inchild {
-					if c, ok := child.(ui.MouseEnterDispatcher); ok && cell.mouseInside {
-						c.DispatchMouseEnter(false)
-						cell.mouseInside = false
-					}
-					continue
-				}
-
-				if c, ok := child.(ui.MouseEnterDispatcher); ok && !cell.mouseInside {
-					c.DispatchMouseEnter(true)
-					cell.mouseInside = true
-				}
-
-				if c, ok := child.(ui.MousePositionDispatcher); ok && cell.mouseInside {
+				if c, ok := child.(ui.MousePositionDispatcher); ok && inchild {
 					c.DispatchMousePosition(x, y)
+				}
+
+				if c, ok := child.(ui.MouseEnterDispatcher); ok && cell.mouseInside != inchild {
+					cell.mouseInside = inchild
+					c.DispatchMouseEnter(inchild)
 				}
 			}
 			self.DispatchMousePosition(x, y)
@@ -201,36 +186,38 @@ func (self *Table) route(parent ui.Drawer) {
 	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
 		p.AddMouseEnterCB(func(in bool) {
 			for _, cell := range self.children {
-				child := cell.drawer
-				if c, ok := child.(ui.MouseEnterDispatcher); ok && cell.mouseInside {
-					c.DispatchMouseEnter(in)
+				self.DispatchMouseEnter(in)
+				if c, ok := cell.drawer.(ui.MouseEnterDispatcher); ok {
+					inside := cell.drawer.Contains(mx, my)
+					if inside != cell.mouseInside {
+						cell.mouseInside = inside
+						c.DispatchMouseEnter(inside)
+					}
 				}
 			}
-			self.DispatchMouseEnter(in)
 		})
 	}
 
 	if p, ok := parent.(ui.MouseClickDispatcher); ok {
 		p.AddMouseClickCB(func(m ui.MouseButtonState) {
+			self.DispatchMouseClick(m)
 			for _, cell := range self.children {
-				child := cell.drawer
-				if c, ok := child.(ui.MouseClickDispatcher); ok && self.bounds(cell).Contains(mx, my) {
+				inchild := cell.drawer.Contains(mx, my)
+				if c, ok := cell.drawer.(ui.MouseClickDispatcher); ok && inchild {
 					c.DispatchMouseClick(m)
 				}
 			}
-			self.DispatchMouseClick(m)
 		})
 	}
 
 	if p, ok := parent.(ui.ScrollDispatcher); ok {
 		p.AddScrollCB(func(xoff, yoff float64) {
+			self.DispatchScroll(xoff, yoff)
 			for _, cell := range self.children {
-				child := cell.drawer
-				if c, ok := child.(ui.ScrollDispatcher); ok && self.bounds(cell).Contains(mx, my) {
+				if c, ok := cell.drawer.(ui.ScrollDispatcher); ok && cell.mouseInside {
 					c.DispatchScroll(xoff, yoff)
 				}
 			}
-			self.DispatchScroll(xoff, yoff)
 		})
 	}
 }

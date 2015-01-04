@@ -32,9 +32,7 @@ func NewFill(parent ui.Drawer) *Fill {
 		ui.NewMouseDispatch(),
 	}
 
-	f.attachPositionCB(parent)
-	f.attachEnterCB(parent)
-	f.attachClickCB(parent)
+	f.attachCB(parent)
 	return f
 }
 
@@ -44,60 +42,56 @@ func NewFill(parent ui.Drawer) *Fill {
 // Please note that because the margin may be set for the Fill
 // a second set of checks have to be made to trigger calls for
 // the child as the child may not fill the entire space.
-func (self *Fill) attachPositionCB(parent ui.Drawer) {
+func (self *Fill) attachCB(parent ui.Drawer) {
+	var mx, my float64
 	if p, ok := parent.(ui.MousePositionDispatcher); ok {
 		p.AddMousePositionCB(func(x, y float64) {
+			mx, my = x, y
 
 			// Dispatch for fill
 			self.DispatchMousePosition(x, y)
 
-			if self.Rectangle.Contains(x, y) && !self.inside {
-				self.inside = true
-				self.DispatchMouseEnter(self.inside)
-
-			} else if self.inside {
-				self.inside = false
+			inside := self.Rectangle.Contains(x, y)
+			if inside != self.inside {
+				self.inside = inside
 				self.DispatchMouseEnter(self.inside)
 			}
 
 			// Dispatch for child
-			if self.child.Contains(x, y) {
-				if c, ok := self.child.(ui.MousePositionDispatcher); ok {
-					c.DispatchMousePosition(x, y)
-				}
+			inchild := self.child.Contains(x, y)
+			if c, ok := self.child.(ui.MousePositionDispatcher); ok && inchild {
+				c.DispatchMousePosition(x, y)
+			}
 
-				if c, ok := self.child.(ui.MouseEnterDispatcher); ok {
-					if !self.insideChild {
-						self.insideChild = true
-						c.DispatchMouseEnter(self.insideChild)
-					}
-				}
-			} else {
-				if c, ok := self.child.(ui.MouseEnterDispatcher); ok {
-					self.insideChild = false
-					c.DispatchMouseEnter(self.insideChild)
-				}
+			if c, ok := self.child.(ui.MouseEnterDispatcher); ok && self.insideChild != inchild {
+				self.insideChild = inchild
+				c.DispatchMouseEnter(self.insideChild)
 			}
 		})
 	}
-}
 
-func (self *Fill) attachEnterCB(parent ui.Drawer) {
 	if p, ok := parent.(ui.MouseEnterDispatcher); ok {
 		p.AddMouseEnterCB(func(in bool) {
-			if !in && self.inside {
+			if in != self.inside {
 				self.inside = in
 				self.DispatchMouseEnter(self.inside)
+				if c, ok := self.child.(ui.MouseEnterDispatcher); ok {
+					if in && self.child.Contains(mx, my) || !in && self.insideChild {
+						self.insideChild = in
+						c.DispatchMouseEnter(self.inside)
+					}
+				}
 			}
 		})
 	}
-}
 
-func (self *Fill) attachClickCB(parent ui.Drawer) {
 	if p, ok := parent.(ui.MouseClickDispatcher); ok {
 		p.AddMouseClickCB(func(m ui.MouseButtonState) {
-			if self.inside {
+			if self.Contains(mx, my) {
 				self.DispatchMouseClick(m)
+				if c, ok := self.child.(ui.MouseClickDispatcher); ok && self.child.Contains(mx, my) {
+					c.DispatchMouseClick(m)
+				}
 			}
 		})
 	}
@@ -116,11 +110,12 @@ func (self *Fill) Child() ui.Drawer {
 	return self.child
 }
 
-func (self *Fill) Draw(x, y, w, h float64, ctx vg.Context) {
-	self.Rectangle = ui.NewRectangle(x, y, w, h)
+func (self *Fill) Draw(ctx vg.Context) {
+	x, y, w, h := self.Bounds()
 	if self.child == nil {
 		return
 	}
 	m := self.Margin
-	self.child.Draw(x+m.Left, y+m.Top, w-(m.Left+m.Right), h-(m.Top+m.Bottom), ctx)
+	self.child.SetBounds(x+m.Left, y+m.Top, w-(m.Left+m.Right), h-(m.Top+m.Bottom))
+	self.child.Draw(ctx)
 }

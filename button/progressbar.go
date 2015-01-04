@@ -21,7 +21,8 @@ func NewProgressBar(parent ui.Drawer, name string, max float64) *ProgressBar {
 
 	self.Element.ClickBackground = Blue4
 
-	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
+	self.DrawCB = func(ctx vg.Context) {
+		x, y, w, h := self.Bounds()
 		fg := ctx.BoxGradient(x, y, w, h/3, h/2, h, self.ClickBackground, self.ClickBackground)
 		ctx.BeginPath()
 		ctx.RoundedRect(x+1, y+1, (w-2)*(self.Value/self.Max), h-2, self.CornerRadius)

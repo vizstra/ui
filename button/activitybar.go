@@ -38,7 +38,8 @@ func NewActivityBar(parent ui.Drawer, name string, maxValue float64, data []floa
 		}
 	})
 
-	self.DrawCB = func(x, y, w, h float64, ctx vg.Context) {
+	self.DrawCB = func(ctx vg.Context) {
+		x, y, w, h := self.Bounds()
 		barw := 5.0 // width of the bar
 		sepw := 1.0
 		totalw := (barw + sepw)

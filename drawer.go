@@ -6,5 +6,5 @@ import (
 
 type Drawer interface {
 	Rectangular
-	Draw(x, y, w, h float64, ctx vg.Context)
+	Draw(ctx vg.Context)
 }
