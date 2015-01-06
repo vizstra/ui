@@ -7,10 +7,10 @@ import (
 	"github.com/vizstra/ui/text"
 )
 
-const TEXT = `Pea horseradish azuki bean lettuce avocado asparagus okra. Kohlrabi radish okra azuki bean corn fava bean mustard tigernut jÃ­cama green bean celtuce collard greens avocado quandong fennel gumbo black-eyed pea. Grape silver beet watercress potato tigernut corn groundnut. Chickweed okra pea winter purslane coriander yarrow sweet pepper radish garlic brussels sprout groundnut summer purslane earthnut pea tomato spring onion azuki bean gourd. Gumbo kakadu plum komatsuna black-eyed pea green bean zucchini gourd winter purslane silver beet rock melon radish asparagus spinach.`
+const TEXT = `Pea horseradish azuki bean lettuce avocado asparagus okra. Kohlrabi radish okra azuki bean corn fava bean mustard tigernut jÃ­cama green bean celtuce collard greens avocado quandong fennel gumbo black-eyed pea. Grape silver beet watercress potato tigernut corn groundnut. Chickweed okra pea winter purslane coriander yarrow sweet pepper radish garlic brussels sprout groundnut summer purslane earthnut pea tomato spring onion azuki bean gourd. Gumbo kakadu plum komatsuna black-eyed pea green bean zucchini gourd winter purslane silver beet rock melon radish asparagus spinach.Pea horseradish azuki bean lettuce avocado asparagus okra. Kohlrabi radish okra azuki bean corn fava bean mustard tigernut jÃ­cama green bean celtuce collard greens avocado quandong fennel gumbo black-eyed pea. Grape silver beet watercress potato tigernut corn groundnut. Chickweed okra pea winter purslane coriander yarrow sweet pepper radish garlic brussels sprout groundnut summer purslane earthnut pea tomato spring onion azuki bean gourd. Gumbo kakadu plum komatsuna black-eyed pea green bean zucchini gourd winter purslane silver beet rock melon radish asparagus spinach.`
 
 func main() {
-	window := ui.NewWindow("", "Text Example", 2650, 25, 1237, 580)
+	window := ui.NewWindow("", "Text Example", 2650, 25, 1637, 580)
 	table := layout.NewTable(window)
 	table.SetCellMargin(ui.Margin{3, 3, 10, 3})
 	table.SetRowHeight(0, 40)
@@ -19,7 +19,7 @@ func main() {
 	table.SetRowHeight(3, 80)
 
 	addText := func(a text.Alignment, atxt string, c color.Color, col, row, w, h int) {
-		table.SetColWidth(col, 300)
+		table.SetColWidth(col, 400)
 		txt := text.New(table, "", atxt)
 		txt.Background = color.Gray10
 		txt.Foreground = color.White

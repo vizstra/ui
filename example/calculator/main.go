@@ -19,13 +19,13 @@ const (
 )
 
 func main() {
-	window := ui.NewWindow("", "Calculator", 1940, 0, 350, 375)
+	window := ui.NewWindow("", "Calculator", 1940, 0, 228, 335)
 	fill := layout.NewFill(window)
-	fill.SetMargin(ui.Margin{30, 30, 30, 30})
+	fill.SetMargin(ui.Margin{10, 10, 10, 10})
 
 	table := layout.NewTable(fill)
 	table.SetDefaultCellDimensions(50, 50)
-	table.SetCellMargin(ui.Margin{2, 2, 2, 2})
+	table.SetCellMargin(ui.Margin{3, 3, 3, 3})
 
 	fill.SetChild(table)
 	window.SetChild(fill)

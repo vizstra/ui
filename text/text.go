@@ -31,6 +31,7 @@ type Text struct {
 	Alignment   Alignment
 	lastContext *vg.Context
 	bounds      []*ui.Rectangle
+	selections  []*ui.Rectangle
 }
 
 func New(parent ui.Drawer, name, text string) *Text {
@@ -44,6 +45,7 @@ func New(parent ui.Drawer, name, text string) *Text {
 		21,
 		LEFT,
 		nil,
+		make([]*ui.Rectangle, len(tokens)),
 		make([]*ui.Rectangle, len(tokens)),
 	}
 
@@ -64,7 +66,18 @@ func New(parent ui.Drawer, name, text string) *Text {
 	})
 
 	self.AddMouseClickCB(func(state ui.MouseButtonState) {
-		fmt.Println(X, Y)
+		fmt.Println("CLICK!")
+		xx, yy, w, h := self.Bounds()
+
+		self.forEachDrawnToken(xx, yy, w, h,
+			func(i int, x, y, lineHeight float64, bounds *ui.Rectangle, ctx *vg.Context) {
+				r := ui.Rectangle{ui.Position{x, y - lineHeight/2}, ui.Size{bounds.Size.W, bounds.Size.H + lineHeight}}
+
+				if r.Contains(X, Y) {
+					fmt.Println(tokens[i])
+				}
+			},
+		)
 	})
 
 	self.Background = White
@@ -72,7 +85,8 @@ func New(parent ui.Drawer, name, text string) *Text {
 	return self
 }
 
-func (self *Text) Draw(x, y, w, h float64, ctx vg.Context) {
+func (self *Text) Draw(ctx vg.Context) {
+	x, y, w, h := self.Bounds()
 	self.lastContext = &ctx
 	ctx.Scissor(x, y, w, h)
 	ctx.BeginPath()
@@ -80,16 +94,22 @@ func (self *Text) Draw(x, y, w, h float64, ctx vg.Context) {
 	ctx.FillColor(self.Background)
 	ctx.Fill()
 	ctx.FillColor(self.Foreground)
+
 	self.forEachDrawnToken(x, y, w, h,
-		func(i int, x, y float64, bounds *ui.Rectangle, ctx *vg.Context) {
+		func(i int, x, y, lineHeight float64, bounds *ui.Rectangle, ctx *vg.Context) {
 			ctx.Text(x, y, self.tokens[i])
 		},
 	)
+
+	for i := 0; i < len(self.selections); i++ {
+
+	}
+
 	ctx.ResetScissor()
 }
 
 func (self *Text) forEachDrawnToken(x, y, w, h float64,
-	f func(i int, x, y float64, bounds *ui.Rectangle, ctx *vg.Context)) {
+	f func(i int, x, y, lineHeight float64, bounds *ui.Rectangle, ctx *vg.Context)) {
 
 	ctx := self.lastContext
 	ctx.SetFontPtSize(self.fontSize)
@@ -127,22 +147,15 @@ func (self *Text) forEachDrawnToken(x, y, w, h float64,
 			}
 		}
 
-		// if a == 0 {
-		// 	fmt.Println(by, self.yoff)
-		// }
-		// if by+self.yoff < 0 || ax+self.xoff < 0 {
-		// 	continue
-		// }
-
 		for ; a < b; a++ {
 			bounds := self.bounds[a]
-			f(a, ax, by, bounds, ctx)
+			f(a, ax, by, lineh, bounds, ctx)
 			ax += bounds.W + spaceWidth + justificationSpread
 		}
 
 		if self.Alignment == NOWRAP && a < len(self.tokens) {
 			bounds := self.bounds[a]
-			f(a, ax, by, bounds, ctx)
+			f(a, ax, by, lineh, bounds, ctx)
 			break
 		}
 
@@ -164,7 +177,8 @@ func (self *Text) tokenBounds(i int, ctx *vg.Context) *ui.Rectangle {
 	bounds := self.bounds[i]
 	if bounds == nil {
 		x, y, w, h := ctx.TextBounds(self.tokens[i], 0, 0)
-		bounds = &ui.Rectangle{x, y, w, h}
+
+		bounds = &ui.Rectangle{ui.Position{x, y}, ui.Size{w, h}}
 		self.bounds[i] = bounds
 	}
 	return bounds

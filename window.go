@@ -184,6 +184,7 @@ func (self *Window) Start() chan bool {
 			// gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 			w, h := self.Size()
+			self.SetSize(Size{float64(w), float64(h)})
 			self.child.SetBounds(0.0, 0.0, float64(w), float64(h))
 
 			if time.Since(now) > 2*time.Second {
