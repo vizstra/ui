@@ -184,11 +184,11 @@ func (self *Window) Start() chan bool {
 			// gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 			w, h := self.Size()
-			self.SetSize(Size{float64(w), float64(h)})
-			self.child.SetBounds(0.0, 0.0, float64(w), float64(h))
+			self.SetBounds(0, 0, float64(w), float64(h))
 
 			if time.Since(now) > 2*time.Second {
 				debug = true
+
 				self.Draw(ctx)
 				debug = false
 				now = time.Now()
@@ -237,8 +237,8 @@ func (self *Window) SetTitle(title string) {
 	self.window.SetTitle(title)
 }
 
-func (self *Window) SetSize(s Size) {
-	self.window.SetSize(int(s.W), int(s.H))
+func (self *Window) SetSize(size Size) {
+	self.window.SetSize(int(size.W), int(size.H))
 }
 
 func (self *Window) Size() (w, h int) {
@@ -249,8 +249,8 @@ func (self *Window) FramebufferSize() (w, h int) {
 	return self.window.GetFramebufferSize()
 }
 
-func (self *Window) SetPosition(p Position) {
-	self.window.SetPosition(int(p.X), int(p.Y))
+func (self *Window) SetPosition(pos Position) {
+	self.window.SetPosition(int(pos.X), int(pos.Y))
 }
 
 func (self *Window) Position() (x, y int) {
