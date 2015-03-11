@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 	glfw "github.com/go-gl/glfw3"
-	gl "github.com/vizstra/opengl/gl43"
+	gl "github.com/vizstra/opengl/gl42"
 	"github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
 	"log"
@@ -16,8 +16,7 @@ var debug bool = false
 var RR gl.Float = 0.0
 
 type Window struct {
-	Rectangle
-	name     string
+	Element
 	endchan  chan bool
 	window   *glfw.Window
 	renderer vg.Renderer
@@ -40,8 +39,8 @@ func NewWindow(name, title string, x, y, w, h int) *Window {
 	}
 
 	win := &Window{
-		NewRectangle(float64(x), float64(y), float64(w), float64(h)),
-		name,
+		NewElement(nil, title),
+
 		make(chan bool),
 		window,
 		nil,
@@ -122,6 +121,7 @@ func (self *Window) HandleMouseEnter(b bool) {
 }
 
 func (self *Window) Draw(ctx vg.Context) {
+	now := time.Now()
 	_, _, w, h := self.Bounds()
 	fbw, fbh := self.FramebufferSize()
 
@@ -137,18 +137,6 @@ func (self *Window) Draw(ctx vg.Context) {
 		self.renderer.Render()
 	}
 
-	////////////////////////////
-	// gl.Viewport(0, 0, 50, 50)
-	// gl.Begin(gl.TRIANGLES)
-	// gl.Color3f(RR, 0.2, 0.3)
-	// gl.Vertex3f(0, 0, 0)
-	// gl.Vertex3f(1, 0, 0)
-	// gl.Vertex3f(0, 1, 0)
-	// gl.End()
-	// gl.Rotatef(1, 0, 0, 1)
-	///////////////////////////
-
-	now := time.Now()
 	// 2D Display
 	// r := float64(fbw) / float64(w)
 	gl.Viewport(0, 0, gl.Sizei(fbw), gl.Sizei(fbh))
@@ -165,11 +153,6 @@ func (self *Window) Draw(ctx vg.Context) {
 }
 
 func (self *Window) Start() chan bool {
-	e := gl.Init()
-	if e != nil {
-		panic(e)
-	}
-
 	now := time.Now()
 	// This is the ever important draw goroutine
 	go func() {
@@ -233,6 +216,12 @@ func (self *Window) Renderer() vg.Renderer {
 	return self.renderer
 }
 
+// SetRenderFunc wraps the function in Renderer for convienence in some
+// instances.  This overrides previously set instances.
+func (self *Window) SetRenderFunc(f func()) {
+	self.renderer = &vg.RenderFunc{f}
+}
+
 func (self *Window) SetTitle(title string) {
 	self.window.SetTitle(title)
 }
@@ -280,5 +269,10 @@ func errorCallback(err glfw.ErrorCode, desc string) {
 func init() {
 	if !glfw.Init() {
 		panic("Cannot initialize windowing library.")
+	}
+
+	e := gl.Init()
+	if e != nil {
+		panic(e)
 	}
 }

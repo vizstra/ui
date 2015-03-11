@@ -2,10 +2,11 @@ package text
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/vizstra/ui"
 	. "github.com/vizstra/ui/color"
 	"github.com/vizstra/vg"
-	"strings"
 )
 
 const DEBUG = false
@@ -101,9 +102,9 @@ func (self *Text) Draw(ctx vg.Context) {
 		},
 	)
 
-	for i := 0; i < len(self.selections); i++ {
-
-	}
+	// for i := 0; i < len(self.selections); i++ {
+	// 	s := self.selections[i]
+	// }
 
 	ctx.ResetScissor()
 }
@@ -149,13 +150,17 @@ func (self *Text) forEachDrawnToken(x, y, w, h float64,
 
 		for ; a < b; a++ {
 			bounds := self.bounds[a]
-			f(a, ax, by, lineh, bounds, ctx)
+			// if by < y {
+				f(a, ax, by, lineh, bounds, ctx)
+			// }
 			ax += bounds.W + spaceWidth + justificationSpread
 		}
 
 		if self.Alignment == NOWRAP && a < len(self.tokens) {
 			bounds := self.bounds[a]
-			f(a, ax, by, lineh, bounds, ctx)
+			if by < y {
+				f(a, ax, by, lineh, bounds, ctx)
+			}
 			break
 		}
 
